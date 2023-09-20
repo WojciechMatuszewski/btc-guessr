@@ -4,7 +4,9 @@
   "scripts": {
     "build": "tsx",
     "watch": "tsx -w",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "deploy": "cdk deploy --require-approval never",
+    "bootstrap": "cdk bootstrap --toolkit-stack-name BTCGuessrBootstrap --qualifier btcguessr"
   },
   "devDependencies": {
     "@types/node": "20.5.9",
