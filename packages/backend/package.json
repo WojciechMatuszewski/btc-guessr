@@ -5,15 +5,21 @@
     "build": "tsx",
     "watch": "tsx -w",
     "cdk": "cdk",
-    "deploy": "cdk deploy --require-approval never",
-    "bootstrap": "cdk bootstrap --toolkit-stack-name BTCGuessrBootstrap --qualifier btcguessr"
+    "deploy": "cdk deploy --require-approval never --outputs-file .stack-outputs.json",
+    "bootstrap": "cdk bootstrap --toolkit-stack-name BTCGuessrBootstrap --qualifier btcguessr",
+    "synth": "cdk synth"
   },
   "devDependencies": {
+    "@types/aws-lambda": "8.10.121",
     "@types/node": "20.5.9",
     "aws-cdk": "2.96.2",
+    "esbuild": "0.19.3",
     "tsx": "3.12.10"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.415.0",
+    "@aws-sdk/lib-dynamodb": "3.415.0",
+    "@aws-sdk/util-dynamodb": "3.415.0",
     "aws-cdk-lib": "2.96.2",
     "constructs": "10.2.70"
   }

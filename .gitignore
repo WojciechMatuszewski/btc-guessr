@@ -11,9 +11,11 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
 
 cdk.out
 .cdk.staging
+.stack-outputs.json
 
 # Editor directories and files
 .vscode/*
