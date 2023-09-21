@@ -1,4 +1,9 @@
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocument,
+  TransactWriteCommandInput,
+} from "@aws-sdk/lib-dynamodb";
+import { Game } from "@btc-guessr/transport";
+import { ulid } from "ulidx";
 import {
   Output,
   is,
@@ -10,18 +15,16 @@ import {
   string,
   union,
 } from "valibot";
-import { ulid } from "ulidx";
-import { Game } from "@btc-guessr/transport";
 
 const GameKeySchema = object({
   pk: literal("GAME"),
-  sk: literal("GAME"),
+  sk: string([startsWith("GAME#ROOM#")]),
 });
 type GameKey = Output<typeof GameKeySchema>;
 
 const GameAttributesSchema = object({
   id: string(),
-  previousValue: number(),
+  value: number(),
 });
 
 const GameItemSchema = merge([GameKeySchema, GameAttributesSchema]);
@@ -52,72 +55,74 @@ export class GameEntity {
     private client: DynamoDBDocument
   ) {}
 
-  async newGameItem(): Promise<GameItem> {
-    const currentGame = await this.getGameItem();
+  async newGameItem(
+    { room }: { room: string } = { room: "default" }
+  ): Promise<GameItem> {
+    const currentGame = await this.getGameItem({ room });
 
-    const nextValue = Math.random();
-    const difference = currentGame.previousValue - nextValue;
-    const correctPrediction: GameResultItem["correctPrediction"] =
-      difference < 0 ? "DOWN" : "UP";
-
+    const newGameValue = Math.random();
     const newGameId = ulid();
+    const newGameKey = GameEntity.gameKey({ room });
 
-    const gameResult: GameResultItem = {
-      ...GameEntity.gameResultKey({ id: currentGame.id }),
-      previousValue: currentGame.previousValue,
-      currentValue: nextValue,
-      correctPrediction,
-      difference,
-    };
+    const transactionItems: TransactWriteCommandInput["TransactItems"] = [];
+    transactionItems.push({
+      Update: {
+        TableName: this.tableName,
+        Key: newGameKey,
+        UpdateExpression: "SET #id = :id, #value = :value",
+        ExpressionAttributeNames: {
+          "#id": "id",
+          "#value": "value",
+        },
+        ExpressionAttributeValues: {
+          ":id": newGameId,
+          ":value": newGameValue,
+        },
+      },
+    });
+    if (currentGame) {
+      transactionItems.push({
+        Put: {
+          TableName: this.tableName,
+          Item: this.computeGameResultItem({
+            gameItem: currentGame,
+            newValue: newGameValue,
+          }),
+          ConditionExpression: "attribute_not_exists(#pk)",
+          ExpressionAttributeNames: {
+            "#pk": "pk",
+          },
+        },
+      });
+    }
 
     await this.client.transactWrite({
-      TransactItems: [
-        {
-          Update: {
-            TableName: this.tableName,
-            Key: GameEntity.gameKey(),
-            UpdateExpression: "SET #id = :id, #previousValue = :previousValue",
-            ExpressionAttributeNames: {
-              "#id": "id",
-              "#previousValue": "previousValue",
-            },
-            ExpressionAttributeValues: {
-              ":id": newGameId,
-              ":previousValue": nextValue,
-            },
-          },
-        },
-        {
-          Put: {
-            TableName: this.tableName,
-            Item: gameResult,
-            ConditionExpression: "attribute_not_exists(#pk)",
-            ExpressionAttributeNames: {
-              "#pk": "pk",
-            },
-          },
-        },
-      ],
+      TransactItems: transactionItems,
     });
 
     const newGame: GameItem = {
-      ...currentGame,
-      previousValue: nextValue,
+      ...newGameKey,
+      value: newGameValue,
       id: newGameId,
     };
 
     return newGame;
   }
 
-  async getGameItem(): Promise<GameItem> {
+  async getGameItem(
+    { room }: { room: string } = { room: "default" }
+  ): Promise<GameItem | null> {
     /**
      * So that we have something to start with.
      * We could seed the database
      */
-    const { Item = DEFAULT_GAME } = await this.client.get({
+    const { Item } = await this.client.get({
       TableName: this.tableName,
-      Key: GameEntity.gameKey(),
+      Key: GameEntity.gameKey({ room }),
     });
+    if (!Item) {
+      return null;
+    }
 
     if (!is(GameItemSchema, Item)) {
       throw new Error("Malformed game data");
@@ -126,8 +131,30 @@ export class GameEntity {
     return Item;
   }
 
-  static gameKey(): GameKey {
-    return { pk: "GAME", sk: "GAME" };
+  private computeGameResultItem({
+    gameItem,
+    newValue,
+  }: {
+    gameItem: GameItem;
+    newValue: number;
+  }): GameResultItem {
+    const difference = gameItem.value - newValue;
+    const correctPrediction: GameResultItem["correctPrediction"] =
+      difference < 0 ? "DOWN" : "UP";
+
+    const gameResult: GameResultItem = {
+      ...GameEntity.gameResultKey({ id: gameItem.id }),
+      previousValue: gameItem.value,
+      currentValue: newValue,
+      correctPrediction,
+      difference,
+    };
+
+    return gameResult;
+  }
+
+  static gameKey({ room }: { room: string }): GameKey {
+    return { pk: "GAME", sk: `GAME#ROOM#${room}` };
   }
 
   static isGameItem(data: unknown): data is GameItem {
@@ -143,8 +170,9 @@ export class GameEntity {
 
   static toGame(gameItem: GameItem): Game {
     return {
+      room: gameItem.sk.replace("GAME#ROOM#", ""),
       id: gameItem.id,
-      value: gameItem.previousValue,
+      value: gameItem.value,
     };
   }
 
@@ -165,10 +193,3 @@ export class GameEntity {
     return oldItem.id !== newItem.id;
   }
 }
-
-const DEFAULT_GAME: GameItem = {
-  id: ulid(),
-  pk: "GAME",
-  previousValue: 0,
-  sk: "GAME",
-};

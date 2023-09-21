@@ -3,6 +3,7 @@ import { Output, literal, number, object, string, union } from "valibot";
 export const GameSchema = object({
   id: string(),
   value: number(),
+  room: string(),
 });
 export type Game = Output<typeof GameSchema>;
 

@@ -40,10 +40,12 @@ export class PredictionEntity {
 
   async predict({
     gameId,
+    room,
     userId,
     prediction,
   }: {
     gameId: string;
+    room: string;
     userId: string;
     prediction: PredictionItem["prediction"];
   }) {
@@ -53,8 +55,6 @@ export class PredictionEntity {
       userId,
       prediction,
     };
-
-    console.log({ gameId, userId, prediction });
 
     await this.client.transactWrite({
       TransactItems: [
@@ -69,7 +69,7 @@ export class PredictionEntity {
             ExpressionAttributeValues: {
               ":gameId": gameId,
             },
-            Key: GameEntity.gameKey(),
+            Key: GameEntity.gameKey({ room }),
           },
         },
         {

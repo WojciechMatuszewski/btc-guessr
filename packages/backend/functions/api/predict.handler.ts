@@ -51,6 +51,7 @@ const lambdaHandler: APIGatewayProxyHandler = async (event) => {
     gameId: pathParametersParseResult.output.gameId,
     userId: bodyParseResult.output.userId,
     prediction: bodyParseResult.output.prediction,
+    room: "default",
   });
 
   return { statusCode: 201, body: "{}" };
