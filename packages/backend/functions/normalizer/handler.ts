@@ -1,6 +1,14 @@
 import { AttributeValue } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import {
+  GameEvent,
+  PredictionEvent,
+  PresenceEvent,
+} from "@btc-guessr/transport";
 import { DynamoDBRecord } from "aws-lambda";
+import { UserEntity } from "../../entity/user";
+import { PredictionEntity } from "../../entity/prediction";
+import { GameEntity } from "../../entity/game";
 
 export const handler = async (event: DynamoDBRecord[]) => {
   const [record] = event;
@@ -9,53 +17,40 @@ export const handler = async (event: DynamoDBRecord[]) => {
   }
 
   const { NewImage = {}, OldImage = {} } = record.dynamodb;
-  const parsedNewImage = unmarshall(NewImage as Record<string, AttributeValue>);
-  const parsedOldImage = unmarshall(OldImage as Record<string, AttributeValue>);
 
-  console.log({ parsedNewImage, parsedOldImage });
+  const oldItem = unmarshall(OldImage as Record<string, AttributeValue>);
+  const newItem = unmarshall(NewImage as Record<string, AttributeValue>);
+  /**
+   * To make type-guards work
+   */
+  const dataChangePayload = { oldItem, newItem };
 
-  return NewImage;
+  if (PredictionEntity.isNewPredictionItem(dataChangePayload)) {
+    const event: PredictionEvent = {
+      payload: PredictionEntity.toPrediction(dataChangePayload.newItem),
+      type: "prediction",
+    };
+
+    return event;
+  }
+
+  if (UserEntity.isUserItemPresenceChange(dataChangePayload)) {
+    const event: PresenceEvent = {
+      payload: UserEntity.toUser(dataChangePayload.newItem),
+      type: "presence",
+    };
+
+    return event;
+  }
+
+  if (GameEntity.isGameItemChange(dataChangePayload)) {
+    const event: GameEvent = {
+      payload: GameEntity.toGame(dataChangePayload.newItem),
+      type: "game",
+    };
+
+    return event;
+  }
+
+  return null;
 };
-
-type TickEvent = {
-  type: "tick";
-  payload: {
-    value: number;
-  };
-};
-
-// const isTickEvent = (event: Record<string, any>) => {
-//   const hasValidPk = "pk" in event && event["pk"] === "TICK";
-//   const hasValidSk = "sk" in event && event["sk"] === "TICK";
-
-//   return hasValidPk && hasValidSk;
-// };
-
-type VoteEvent = {
-  type: "vote";
-  payload: {
-    userId: string;
-    vote: "up" | "down";
-  };
-};
-
-type PresenceEvent = {
-  type: "presence";
-  payload: {
-    userId: string;
-    status: "CONNECTED" | "DISCONNECTED";
-  };
-};
-
-// const isPresenceEvent = (event: Record<string, any>) => {
-//   const hasValidPk = "pk" in event && event["pk"] === "USER";
-
-//   const hasValidSk =
-//     "sk" in event &&
-//     typeof event["sk"] === "string" &&
-//     event["sk"].startsWith("USER#");
-
-//   const hasValidStatus = "status" in event;
-
-//   return hasValidPk && hasValidSk && hasValidStatus;
-// };

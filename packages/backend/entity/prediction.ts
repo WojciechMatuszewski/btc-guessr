@@ -1,15 +1,18 @@
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import {
   Output,
+  is,
   literal,
   merge,
   object,
+  parse,
   startsWith,
   string,
   union,
 } from "valibot";
 import { GameEntity } from "./game";
 import { UserEntity } from "./user";
+import { Prediction } from "@btc-guessr/transport";
 
 const PredictionKeySchema = object({
   pk: string([startsWith("GAME#")]),
@@ -19,6 +22,8 @@ type PredictionKey = Output<typeof PredictionKeySchema>;
 
 const PredictionAttributesSchema = object({
   prediction: union([literal("UP"), literal("DOWN")]),
+  gameId: string(),
+  userId: string(),
 });
 
 const PredictionItemSchema = merge([
@@ -44,6 +49,8 @@ export class PredictionEntity {
   }) {
     const predictionItem: PredictionItem = {
       ...PredictionEntity.predictionKey({ gameId, userId }),
+      gameId,
+      userId,
       prediction,
     };
 
@@ -52,9 +59,10 @@ export class PredictionEntity {
         {
           ConditionCheck: {
             TableName: this.tableName,
-            ConditionExpression: "attribute_exists(#pk)",
+            ConditionExpression: "attribute_exists(#pk) AND #gameId = :gameId",
             ExpressionAttributeNames: {
               "#pk": "pk",
+              "#gameId": "#gameId",
             },
             Key: GameEntity.gameKey(),
           },
@@ -79,6 +87,30 @@ export class PredictionEntity {
     });
   }
 
+  async getPredictionItems({
+    gameId,
+  }: {
+    gameId: string;
+  }): Promise<PredictionItem[]> {
+    const { Items = [] } = await this.client.query({
+      TableName: this.tableName,
+      KeyConditionExpression: "pk = :pk AND begins_with(#sk, :sk)",
+      ExpressionAttributeValues: {
+        ":pk": `GAME#${gameId}`,
+        ":sk": "PREDICTION#",
+      },
+      ExpressionAttributeNames: {
+        "#sk": "sk",
+      },
+    });
+
+    const validatedPredictions = Items.map((prediction) => {
+      return parse(PredictionItemSchema, prediction);
+    });
+
+    return validatedPredictions;
+  }
+
   static predictionKey({
     userId,
     gameId,
@@ -90,5 +122,26 @@ export class PredictionEntity {
       pk: `GAME#${gameId}`,
       sk: `PREDICTION#${userId}`,
     };
+  }
+
+  static toPrediction(predictionItem: PredictionItem): Prediction {
+    return {
+      gameId: predictionItem.gameId,
+      prediction: predictionItem.prediction,
+      userId: predictionItem.userId,
+    };
+  }
+
+  static isNewPredictionItem(payload: {
+    oldItem: unknown;
+    newItem: unknown;
+  }): payload is { oldItem: unknown; newItem: PredictionItem } {
+    const { oldItem, newItem } = payload;
+
+    if (oldItem) {
+      return false;
+    }
+
+    return is(PredictionItemSchema, newItem);
   }
 }

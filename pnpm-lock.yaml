@@ -36,6 +36,19 @@ importers:
         specifier: 5.0.2
         version: 5.0.2
 
+  libs/transport:
+    dependencies:
+      valibot:
+        specifier: 0.17.0
+        version: 0.17.0
+    devDependencies:
+      '@tsconfig/node18':
+        specifier: 18.2.2
+        version: 18.2.2
+      '@tsconfig/strictest':
+        specifier: 2.0.2
+        version: 2.0.2
+
   packages/backend:
     dependencies:
       '@aws-sdk/client-dynamodb':
@@ -47,6 +60,15 @@ importers:
       '@aws-sdk/util-dynamodb':
         specifier: 3.415.0
         version: 3.415.0(@aws-sdk/client-dynamodb@3.415.0)
+      '@btc-guessr/transport':
+        specifier: workspace:*
+        version: link:../../libs/transport
+      '@middy/core':
+        specifier: 4.6.4
+        version: 4.6.4
+      '@middy/http-cors':
+        specifier: 4.6.4
+        version: 4.6.4
       '@ngneat/falso':
         specifier: 7.1.0
         version: 7.1.0
@@ -90,6 +112,9 @@ importers:
       '@aws-amplify/pubsub':
         specifier: 5.5.5
         version: 5.5.5(react-native@0.72.4)
+      '@btc-guessr/transport':
+        specifier: workspace:*
+        version: link:../../libs/transport
       aws-amplify:
         specifier: 5.3.11
         version: 5.3.11(react-native@0.72.4)
@@ -99,6 +124,9 @@ importers:
       react-dom:
         specifier: 18.2.0
         version: 18.2.0(react@18.2.0)
+      ulidx:
+        specifier: 2.1.0
+        version: 2.1.0
     devDependencies:
       '@types/react':
         specifier: 18.2.22
@@ -4481,6 +4509,23 @@ packages:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.1
       '@jridgewell/sourcemap-codec': 1.4.15
+    dev: false
+
+  /@middy/core@4.6.4:
+    resolution: {integrity: sha512-yO+z6ijOFUeXJj/SOmEy2lP0ZxGGkJyaNXSUUQZdyLeNIzHtqqCvef/eIym5WZnl4prEr76sHCv0dwEmfSwYLQ==}
+    engines: {node: '>=16'}
+    dev: false
+
+  /@middy/http-cors@4.6.4:
+    resolution: {integrity: sha512-N269/RKmNyrKE31jP899GTQ/nVXMu/PXtukhnIUoTz/8d3Z47C5LBpoO7V90QEkQIa0s30NSCCz8URwwPWIH4g==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@middy/util': 4.6.4
+    dev: false
+
+  /@middy/util@4.6.4:
+    resolution: {integrity: sha512-U9wQtmBlnHKdkTMUfdJXVkVRU0BKdXBOi3jFPalUVgZL/SlMACLyelitFUmNhfsjXBPvBdPJg7wadnAzzWRRZQ==}
+    engines: {node: '>=16'}
     dev: false
 
   /@ngneat/falso@7.1.0:

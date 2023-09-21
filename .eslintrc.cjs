@@ -12,6 +12,7 @@ module.exports = {
       "./tsconfig.eslint.json",
       "./packages/*/tsconfig.json",
       "./packages/*/tsconfig.node.json",
+      "./libs/*/tsconfig.json",
     ],
   },
   plugins: ["@typescript-eslint"],

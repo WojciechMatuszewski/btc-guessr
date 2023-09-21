@@ -1,3 +1,13 @@
-export const handler = async (event: any) => {
-  console.log("notifier", event);
+import {
+  GameEvent,
+  PredictionEvent,
+  PresenceEvent,
+} from "@btc-guessr/transport";
+
+export const handler = async (
+  event: GameEvent | PresenceEvent | PredictionEvent | null
+) => {
+  if (!event) {
+    return;
+  }
 };

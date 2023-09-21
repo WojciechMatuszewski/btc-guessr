@@ -35,6 +35,14 @@ class Data extends Construct {
     new cdk.CfnOutput(this, "DataTableName", {
       value: this.table.tableName,
     }).overrideLogicalId("DataTableName");
+
+    this.table.addGlobalSecondaryIndex({
+      indexName: "ByUserStatus",
+      partitionKey: {
+        name: "gsi1pk",
+        type: cdk.aws_dynamodb.AttributeType.STRING,
+      },
+    });
   }
 }
 
@@ -306,6 +314,9 @@ class Api extends Construct {
       {
         handler: "handler",
         entry: join(__dirname, "../functions/api/predict.handler.ts"),
+        environment: {
+          DATA_TABLE_NAME: props.dataTable.tableName,
+        },
       }
     );
     props.dataTable.grantReadWriteData(predictFunction);
@@ -316,6 +327,22 @@ class Api extends Construct {
       {
         handler: "handler",
         entry: join(__dirname, "../functions/api/state.handler.ts"),
+        environment: {
+          DATA_TABLE_NAME: props.dataTable.tableName,
+        },
+      }
+    );
+    props.dataTable.grantReadData(stateFunction);
+
+    const userFunction = new cdk.aws_lambda_nodejs.NodejsFunction(
+      this,
+      "UserFunction",
+      {
+        handler: "handler",
+        entry: join(__dirname, "../functions/api/user.handler.ts"),
+        environment: {
+          DATA_TABLE_NAME: props.dataTable.tableName,
+        },
       }
     );
     props.dataTable.grantReadData(stateFunction);
@@ -328,13 +355,22 @@ class Api extends Construct {
       },
     });
 
+    const userResource = api.root.addResource("user").addResource("{userId}");
+    userResource.addMethod(
+      "GET",
+      new cdk.aws_apigateway.LambdaIntegration(userFunction)
+    );
+    new cdk.CfnOutput(this, "UserEndpointUrl", {
+      value: api.urlForPath(userResource.path),
+    }).overrideLogicalId("UserEndpointUrl");
+
     const gameResource = api.root.addResource("game");
     gameResource.addMethod(
       "GET",
       new cdk.aws_apigateway.LambdaIntegration(stateFunction)
     );
     new cdk.CfnOutput(this, "GameEndpointUrl", {
-      value: gameResource.path,
+      value: api.urlForPath(gameResource.path),
     }).overrideLogicalId("GameEndpointUrl");
 
     const predictResource = gameResource
@@ -346,7 +382,7 @@ class Api extends Construct {
       new cdk.aws_apigateway.LambdaIntegration(predictFunction)
     );
     new cdk.CfnOutput(this, "PredictEndpointUrl", {
-      value: predictResource.path,
+      value: api.urlForPath(predictResource.path),
     }).overrideLogicalId("PredictEndpointUrl");
   }
 }

@@ -1,7 +1,13 @@
 {
   "references": [
     { "path": "./packages/frontend" },
-    { "path": "./packages/backend" }
+    { "path": "./packages/backend" },
+    { "path": "./libs/transport" }
   ],
-  "files": []
+  "files": [],
+  "compilerOptions": {
+    "paths": {
+      "@btc-guessr/transport": ["./libs/transport"]
+    }
+  }
 }

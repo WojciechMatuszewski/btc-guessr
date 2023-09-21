@@ -11,6 +11,7 @@ import {
   union,
 } from "valibot";
 import { ulid } from "ulidx";
+import { Game } from "@btc-guessr/transport";
 
 const GameKeySchema = object({
   pk: literal("GAME"),
@@ -51,8 +52,8 @@ export class GameEntity {
     private client: DynamoDBDocument
   ) {}
 
-  async newGame(): Promise<GameItem> {
-    const currentGame = await this.getGame();
+  async newGameItem(): Promise<GameItem> {
+    const currentGame = await this.getGameItem();
 
     const nextValue = Math.random();
     const difference = currentGame.previousValue - nextValue;
@@ -108,7 +109,7 @@ export class GameEntity {
     return newGame;
   }
 
-  async getGame(): Promise<GameItem> {
+  async getGameItem(): Promise<GameItem> {
     /**
      * So that we have something to start with.
      * We could seed the database
@@ -138,6 +139,30 @@ export class GameEntity {
       pk: `GAME#${id}`,
       sk: "RESULT",
     };
+  }
+
+  static toGame(gameItem: GameItem): Game {
+    return {
+      id: gameItem.id,
+      value: gameItem.previousValue,
+    };
+  }
+
+  static isGameItemChange(payload: {
+    oldItem: unknown;
+    newItem: unknown;
+  }): payload is { oldItem: GameItem; newItem: GameItem } {
+    const { oldItem, newItem } = payload;
+
+    if (!is(GameItemSchema, oldItem)) {
+      return false;
+    }
+
+    if (!is(GameItemSchema, newItem)) {
+      return false;
+    }
+
+    return oldItem.id !== newItem.id;
   }
 }
 

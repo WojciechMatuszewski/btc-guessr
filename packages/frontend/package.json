@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@aws-amplify/pubsub": "5.5.5",
+    "@btc-guessr/transport": "workspace:*",
     "aws-amplify": "5.3.11",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "ulidx": "2.1.0"
   },
   "devDependencies": {
     "@types/react": "18.2.22",

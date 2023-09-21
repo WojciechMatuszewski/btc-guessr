@@ -7,5 +7,5 @@ const client = DynamoDBDocument.from(new DynamoDBClient({}));
 
 export const handler = async () => {
   const gameEntity = new GameEntity(DATA_TABLE_NAME, client);
-  await gameEntity.newGame();
+  await gameEntity.newGameItem();
 };
