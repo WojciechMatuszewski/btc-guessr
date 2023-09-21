@@ -5,16 +5,20 @@
     "build": "tsx",
     "watch": "tsx -w",
     "cdk": "cdk",
+    "test": "vitest --config ./test/vitest.config.ts",
     "deploy": "cdk deploy --require-approval never --outputs-file .stack-outputs.json",
     "bootstrap": "cdk bootstrap --toolkit-stack-name BTCGuessrBootstrap --qualifier btcguessr",
-    "synth": "cdk synth"
+    "synth": "cdk synth",
+    "tsx": "tsx"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.121",
     "@types/node": "20.5.9",
     "aws-cdk": "2.96.2",
+    "change-case": "4.1.2",
     "esbuild": "0.19.3",
-    "tsx": "3.12.10"
+    "tsx": "3.12.10",
+    "vitest": "0.34.4"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.415.0",

@@ -15,6 +15,8 @@ export class BackendStack extends cdk.Stack {
     new Ticker(this, "Ticker", { dataTable: data.table });
 
     new Notifier(this, "Notifier", { dataTable: data.table });
+
+    new Api(this, "Api", { dataTable: data.table });
   }
 }
 
@@ -223,7 +225,7 @@ class Ticker extends Construct {
 
     new cdk.aws_events.Rule(this, "TickerRule", {
       schedule: cdk.aws_events.Schedule.rate(cdk.Duration.minutes(1)),
-      enabled: true,
+      enabled: false,
       targets: [
         new cdk.aws_events_targets.LambdaFunction(tickerFunction, {
           retryAttempts: 0,
@@ -287,5 +289,64 @@ class Notifier extends Construct {
         },
       },
     });
+  }
+}
+
+interface ApiProps {
+  dataTable: cdk.aws_dynamodb.Table;
+}
+
+class Api extends Construct {
+  constructor(scope: Construct, id: string, props: ApiProps) {
+    super(scope, id);
+
+    const predictFunction = new cdk.aws_lambda_nodejs.NodejsFunction(
+      this,
+      "PredictFunction",
+      {
+        handler: "handler",
+        entry: join(__dirname, "../functions/api/predict.handler.ts"),
+      }
+    );
+    props.dataTable.grantReadWriteData(predictFunction);
+
+    const stateFunction = new cdk.aws_lambda_nodejs.NodejsFunction(
+      this,
+      "StateFunction",
+      {
+        handler: "handler",
+        entry: join(__dirname, "../functions/api/state.handler.ts"),
+      }
+    );
+    props.dataTable.grantReadData(stateFunction);
+
+    const api = new cdk.aws_apigateway.RestApi(this, "Api", {
+      defaultCorsPreflightOptions: {
+        allowOrigins: cdk.aws_apigateway.Cors.ALL_ORIGINS,
+        allowHeaders: cdk.aws_apigateway.Cors.DEFAULT_HEADERS,
+        allowMethods: cdk.aws_apigateway.Cors.ALL_METHODS,
+      },
+    });
+
+    const gameResource = api.root.addResource("game");
+    gameResource.addMethod(
+      "GET",
+      new cdk.aws_apigateway.LambdaIntegration(stateFunction)
+    );
+    new cdk.CfnOutput(this, "GameEndpointUrl", {
+      value: gameResource.path,
+    }).overrideLogicalId("GameEndpointUrl");
+
+    const predictResource = gameResource
+      .addResource("{gameId}")
+      .addResource("predict");
+
+    predictResource.addMethod(
+      "POST",
+      new cdk.aws_apigateway.LambdaIntegration(predictFunction)
+    );
+    new cdk.CfnOutput(this, "PredictEndpointUrl", {
+      value: predictResource.path,
+    }).overrideLogicalId("PredictEndpointUrl");
   }
 }

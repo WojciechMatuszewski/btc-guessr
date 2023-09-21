@@ -111,7 +111,7 @@ export class GameEntity {
   async getGame(): Promise<GameItem> {
     /**
      * So that we have something to start with.
-     * We could seed the database after deploying
+     * We could seed the database
      */
     const { Item = DEFAULT_GAME } = await this.client.get({
       TableName: this.tableName,
