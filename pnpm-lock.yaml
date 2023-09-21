@@ -47,12 +47,21 @@ importers:
       '@aws-sdk/util-dynamodb':
         specifier: 3.415.0
         version: 3.415.0(@aws-sdk/client-dynamodb@3.415.0)
+      '@ngneat/falso':
+        specifier: 7.1.0
+        version: 7.1.0
       aws-cdk-lib:
         specifier: 2.96.2
         version: 2.96.2(constructs@10.2.70)
       constructs:
         specifier: 10.2.70
         version: 10.2.70
+      ulidx:
+        specifier: 2.1.0
+        version: 2.1.0
+      valibot:
+        specifier: 0.17.0
+        version: 0.17.0
     devDependencies:
       '@types/aws-lambda':
         specifier: 8.10.121
@@ -69,8 +78,6 @@ importers:
       tsx:
         specifier: 3.12.10
         version: 3.12.10
-
-  packages/env: {}
 
   packages/frontend:
     dependencies:
@@ -4471,6 +4478,13 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: false
 
+  /@ngneat/falso@7.1.0:
+    resolution: {integrity: sha512-ihJZmLxLYjiJA6QdW1S+DyDP61EH9/76oaFRGziT7uiAQDWg8SfBit0M0coLPps8x+8v1y+bs+mrX95zZBuW6A==}
+    dependencies:
+      seedrandom: 3.0.5
+      uuid: 8.3.2
+    dev: false
+
   /@nodelib/fs.scandir@2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -7742,6 +7756,10 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
+  /layerr@2.0.1:
+    resolution: {integrity: sha512-z0730CwG/JO24evdORnyDkwG1Q7b7mF2Tp1qRQ0YvrMMARbt1DFG694SOv439Gm7hYKolyZyaB49YIrYIfZBdg==}
+    dev: false
+
   /leven@3.1.0:
     resolution: {integrity: sha512-qsda+H8jTaUaN/x5vzW2rzc+8Rw4TAQ/4KjB46IwK5VH+IlVeeeje/EoZRpiXvIqjFgK84QffqPztGI3VBLG1A==}
     engines: {node: '>=6'}
@@ -9179,6 +9197,10 @@ packages:
       loose-envify: 1.4.0
     dev: false
 
+  /seedrandom@3.0.5:
+    resolution: {integrity: sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg==}
+    dev: false
+
   /semver@5.7.2:
     resolution: {integrity: sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==}
     hasBin: true
@@ -9625,6 +9647,13 @@ packages:
     hasBin: true
     dev: false
 
+  /ulidx@2.1.0:
+    resolution: {integrity: sha512-DlMi97oP9HASI3kLCjBlOhAG1SoisUrEqC2PJ7itiFbq9q5Zo0JejupXeu2Gke99W62epNzA4MFNToNiq8A5LA==}
+    engines: {node: '>=16'}
+    dependencies:
+      layerr: 2.0.1
+    dev: false
+
   /unfetch@4.2.0:
     resolution: {integrity: sha512-F9p7yYCn6cIW9El1zi0HI6vqpeIvBsr3dSuRO6Xuppb1u5rXpCPmMvLSyECLhybr9isec8Ohl0hPekMVrEinDA==}
     dev: false
@@ -9743,6 +9772,10 @@ packages:
   /uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
+    dev: false
+
+  /valibot@0.17.0:
+    resolution: {integrity: sha512-ykoYfBc4HOH+osdWaFBmeL7yX35bFfKg1WdwHYZhNVuvGIRH5f2gtYT6cnU85XOsOE7R8la5RnVY6yAScWU9qg==}
     dev: false
 
   /vary@1.1.2:

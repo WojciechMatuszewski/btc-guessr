@@ -1,56 +1,38 @@
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { UserEntity } from "../../entity/user";
+import { array, includes, is, literal, object, string } from "valibot";
+
+const SubscribeEventSchema = object({
+  clientId: string(),
+  eventType: literal("subscribed"),
+  topics: array(string([includes("game")])),
+});
+
+const UnsubscribeEventSchema = object({
+  clientId: string(),
+  eventType: literal("unsubscribed"),
+  topics: array(string([includes("game")])),
+});
 
 const DATA_TABLE_NAME = process.env["DATA_TABLE_NAME"] as string;
+const client = DynamoDBDocument.from(new DynamoDBClient({}));
 
-type ConnectEvent = {
-  clientId: string;
-  eventType: "connected";
-  timestamp: number;
-};
-
-type DisconnectEvent = {
-  clientId: string;
-  eventType: "disconnected";
-  timestamp: number;
-};
-
-type UnknownEvent = {
-  eventType: never;
-};
-
-type Event = ConnectEvent | DisconnectEvent | UnknownEvent;
-
-export const handler = async (event: Event) => {
-  const ddbDocClient = DynamoDBDocument.from(new DynamoDBClient({}));
+export const handler = async (event: unknown) => {
+  const userEntity = new UserEntity(DATA_TABLE_NAME, client);
 
   /**
    * These could be out of order.
    */
-  if (event.eventType === "connected") {
-    await ddbDocClient.put({
-      TableName: DATA_TABLE_NAME,
-      Item: {
-        pk: "USER",
-        sk: `USER#${event.clientId}`,
-        status: "CONNECTED",
-        userId: event.clientId,
-      },
-    });
+  if (is(SubscribeEventSchema, event)) {
+    await userEntity.upsertUser({ status: "CONNECTED", id: event.clientId });
+    return;
   }
 
-  if (event.eventType === "disconnected") {
-    await ddbDocClient.update({
-      TableName: DATA_TABLE_NAME,
-      Key: { pk: "USER", sk: `USER#${event.clientId}` },
-      ConditionExpression: "attribute_exists(#pk)",
-      ExpressionAttributeNames: {
-        "#status": "status",
-        "#pk": "pk",
-      },
-      ExpressionAttributeValues: {
-        ":connected": "CONNECTED",
-      },
-    });
+  if (is(UnsubscribeEventSchema, event)) {
+    await userEntity.upsertUser({ status: "DISCONNECTED", id: event.clientId });
+    return;
   }
+
+  console.warn("Unknown event", event);
 };

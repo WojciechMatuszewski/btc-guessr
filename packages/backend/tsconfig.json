@@ -8,7 +8,9 @@
     "noEmit": true,
     "declaration": true,
     "exactOptionalPropertyTypes": false,
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"],
+    "module": "CommonJS",
+    "moduleResolution": "Node"
   },
   "exclude": ["node_modules", "cdk.out"]
 }

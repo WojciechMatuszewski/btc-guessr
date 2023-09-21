@@ -187,7 +187,7 @@ class IoT extends Construct {
     new cdk.aws_iot.CfnTopicRule(this, "PresenceRule", {
       topicRulePayload: {
         actions: [{ lambda: { functionArn: presenceFunction.functionArn } }],
-        sql: "SELECT * from '$aws/events/presence/+/+'",
+        sql: "SELECT * from '$aws/events/subscriptions/+/+'",
         awsIotSqlVersion: "2016-03-23",
         errorAction: {
           cloudwatchLogs: {
@@ -219,10 +219,11 @@ class Ticker extends Construct {
         },
       }
     );
-    props.dataTable.grantWriteData(tickerFunction);
+    props.dataTable.grantReadWriteData(tickerFunction);
 
     new cdk.aws_events.Rule(this, "TickerRule", {
       schedule: cdk.aws_events.Schedule.rate(cdk.Duration.minutes(1)),
+      enabled: true,
       targets: [
         new cdk.aws_events_targets.LambdaFunction(tickerFunction, {
           retryAttempts: 0,

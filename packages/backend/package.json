@@ -20,7 +20,10 @@
     "@aws-sdk/client-dynamodb": "3.415.0",
     "@aws-sdk/lib-dynamodb": "3.415.0",
     "@aws-sdk/util-dynamodb": "3.415.0",
+    "@ngneat/falso": "7.1.0",
     "aws-cdk-lib": "2.96.2",
-    "constructs": "10.2.70"
+    "constructs": "10.2.70",
+    "ulidx": "2.1.0",
+    "valibot": "0.17.0"
   }
 }
