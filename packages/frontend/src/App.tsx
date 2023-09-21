@@ -1,47 +1,65 @@
-import { AWSIoTProvider } from "@aws-amplify/pubsub";
 import { Game, Prediction, User } from "@btc-guessr/transport";
+import { ThickArrowDownIcon, ThickArrowUpIcon } from "@radix-ui/react-icons";
+import {
+  Card,
+  Container,
+  Flex,
+  IconButton,
+  Table,
+  Text,
+} from "@radix-ui/themes";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Amplify, PubSub } from "aws-amplify";
+import { PubSub } from "aws-amplify";
 import { useEffect, useState } from "react";
 
-Amplify.configure({
-  identityPoolId: "xx",
-  region: "Xx",
-  userPoolId: "xx",
-  userPoolWebClientId: "Xx",
-});
+console.log(import.meta.env);
 
-let userId = localStorage.getItem("userId") as string;
+// Amplify.configure({
+//   identityPoolId: "xx",
+//   region: "Xx",
+//   userPoolId: "xx",
+//   userPoolWebClientId: "Xx",
+// });
 
-if (!userId) {
-  userId = "mqtt-explorer-" + Math.floor(Math.random() * 100000 + 1);
-  localStorage.setItem("userId", userId);
-}
+// let userId = localStorage.getItem("userId") as string;
+
+// if (!userId) {
+//   userId = "mqtt-explorer-" + Math.floor(Math.random() * 100000 + 1);
+//   localStorage.setItem("userId", userId);
+// }
 
 function App() {
-  const { isLoading, error, data } = useGetGame();
-  if (error) {
-    return <div>{JSON.stringify(error)}</div>;
-  }
-
-  if (isLoading || !data) {
-    return <div>Loading...</div>;
-  }
-
   return (
-    <Game userId={userId} initialGame={data.game} initialUsers={data.users} />
+    <Container p="4">
+      <Flex direction={"column"} gap="8">
+        <TickerCard value={100} />
+        <UsersTable />
+      </Flex>
+    </Container>
   );
+  // const { isLoading, error, data } = useGetGame();
+  // if (error) {
+  //   return <div>{JSON.stringify(error)}</div>;
+  // }
+
+  // if (isLoading || !data) {
+  //   return <div>Loading...</div>;
+  // }
+
+  // return (
+  //   <Game userId={userId} initialGame={data.game} initialUsers={data.users} />
+  // );
 }
 
 export default App;
 
-Amplify.addPluggable(
-  new AWSIoTProvider({
-    clientId: userId,
-    aws_pubsub_endpoint: "xx",
-    aws_pubsub_region: "xx",
-  })
-);
+// Amplify.addPluggable(
+//   new AWSIoTProvider({
+//     clientId: userId,
+//     aws_pubsub_endpoint: "xx",
+//     aws_pubsub_region: "xx",
+//   })
+// );
 
 type UserWithPrediction = User & {
   prediction: Prediction["prediction"] | null;
@@ -138,4 +156,74 @@ const useMakePrediction = () => {
       }
     },
   });
+};
+
+interface TickerCardProps {
+  value: number;
+}
+
+const TickerCard = ({ value }: TickerCardProps) => {
+  return (
+    <Card style={{ width: "max-content" }} m="auto" variant="ghost">
+      <Flex gap="2" align={"center"} p="4" width={"max-content"}>
+        <Text size="8" color="yellow">
+          $BTC
+        </Text>
+        <Text size="8">{value}</Text>
+      </Flex>
+    </Card>
+  );
+};
+
+const PredictionButtons = () => {
+  return (
+    <Flex gap="3">
+      <IconButton variant="soft" color="green" style={{ cursor: "pointer" }}>
+        <ThickArrowUpIcon />
+      </IconButton>
+      <IconButton variant="soft" color="red" style={{ cursor: "pointer" }}>
+        <ThickArrowDownIcon />
+      </IconButton>
+    </Flex>
+  );
+};
+
+const UsersTable = () => {
+  return (
+    <Table.Root variant="surface">
+      <Table.Header>
+        <Table.Row>
+          <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Prediction</Table.ColumnHeaderCell>
+          <Table.ColumnHeaderCell>Points</Table.ColumnHeaderCell>
+        </Table.Row>
+      </Table.Header>
+
+      <Table.Body>
+        <Table.Row align={"center"}>
+          <Table.RowHeaderCell>Danilo Sousa</Table.RowHeaderCell>
+          <Table.Cell>
+            <PredictionButtons />
+          </Table.Cell>
+          <Table.Cell>0</Table.Cell>
+        </Table.Row>
+
+        <Table.Row align={"center"}>
+          <Table.RowHeaderCell>Zahra Ambessa</Table.RowHeaderCell>
+          <Table.Cell>
+            <PredictionButtons />
+          </Table.Cell>
+          <Table.Cell>0</Table.Cell>
+        </Table.Row>
+
+        <Table.Row align={"center"}>
+          <Table.RowHeaderCell>Jasper Eriksson</Table.RowHeaderCell>
+          <Table.Cell>
+            <PredictionButtons />
+          </Table.Cell>
+          <Table.Cell>0</Table.Cell>
+        </Table.Row>
+      </Table.Body>
+    </Table.Root>
+  );
 };

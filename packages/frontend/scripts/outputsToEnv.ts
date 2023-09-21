@@ -24,6 +24,6 @@ export function outputsToEnv() {
 
   const outputs = Object.values(parsedOutputsFile)[0]!;
   for (const [key, value] of Object.entries(outputs)) {
-    process.env[constantCase(key)] = value;
+    process.env[`VITE_${constantCase(key)}`] = value;
   }
 }

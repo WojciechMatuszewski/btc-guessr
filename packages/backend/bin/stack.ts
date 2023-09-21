@@ -6,6 +6,40 @@ export class BackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    new cdk.CfnOutput(this, "Region", {
+      value: cdk.Stack.of(this).region,
+    }).overrideLogicalId("Region");
+
+    /**
+     * To fetch the endpoint we have to make a HTTP call.
+     * To my best knowledge, there is no other way to get the IoT endpoint address.
+     */
+    const iotEndpointCustomResource =
+      new cdk.custom_resources.AwsCustomResource(
+        this,
+        "iotEndpointCustomResource",
+        {
+          onCreate: {
+            service: "Iot",
+            action: "DescribeEndpoint",
+            physicalResourceId:
+              cdk.custom_resources.PhysicalResourceId.fromResponse(
+                "endpointAddress"
+              ),
+          },
+          policy: cdk.custom_resources.AwsCustomResourcePolicy.fromSdkCalls({
+            resources:
+              cdk.custom_resources.AwsCustomResourcePolicy.ANY_RESOURCE,
+          }),
+        }
+      );
+
+    new cdk.CfnOutput(this, "IotEndpoint", {
+      value: `wss://${iotEndpointCustomResource.getResponseField(
+        "endpointAddress"
+      )}`,
+    }).overrideLogicalId("IotEndpoint");
+
     const data = new Data(this, "Data");
 
     new Auth(this, "Auth");
@@ -267,7 +301,7 @@ class Ticker extends Construct {
 
     new cdk.aws_events.Rule(this, "TickerRule", {
       schedule: cdk.aws_events.Schedule.rate(cdk.Duration.minutes(1)),
-      enabled: true,
+      enabled: false,
       targets: [
         new cdk.aws_events_targets.LambdaFunction(tickerFunction, {
           retryAttempts: 0,

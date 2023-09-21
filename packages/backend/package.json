@@ -6,12 +6,13 @@
     "watch": "tsx -w",
     "cdk": "cdk",
     "test": "vitest --config ./test/vitest.config.ts",
-    "deploy": "cdk deploy --require-approval never --outputs-file .stack-outputs.json",
+    "deploy": "cdk deploy --require-approval never --outputs-file ../../.stack-outputs.json",
     "bootstrap": "cdk bootstrap --toolkit-stack-name BTCGuessrBootstrap --qualifier btcguessr",
     "synth": "cdk synth",
     "tsx": "tsx"
   },
   "devDependencies": {
+    "@aws-sdk/client-iot": "3.414.0",
     "@types/aws-lambda": "8.10.121",
     "@types/node": "20.5.9",
     "aws-cdk": "2.96.2",
