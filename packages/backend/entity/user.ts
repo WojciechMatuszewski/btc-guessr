@@ -13,7 +13,6 @@ import {
   union,
 } from "valibot";
 import { User } from "@btc-guessr/transport";
-import { AttributeValue } from "@aws-sdk/client-dynamodb";
 
 const UserKeySchema = object({
   pk: literal("USER"),
@@ -64,7 +63,7 @@ export class UserEntity {
         TableName: this.tableName,
         Key: UserEntity.userKey({ id }),
         UpdateExpression:
-          "SET #gsi1pk = :status, SET #status = :status, #name = if_not_exists(#name, :name), #id = if_not_exists(#id, :id), #score = if_not_exists(#score, :score)",
+          "SET #gsi1pk = :status, #status = :status, #name = if_not_exists(#name, :name), #id = if_not_exists(#id, :id), #score = if_not_exists(#score, :score)",
         ExpressionAttributeNames: {
           "#name": "name",
           "#status": "status",
@@ -85,10 +84,11 @@ export class UserEntity {
       await this.client.update({
         TableName: this.tableName,
         Key: UserEntity.userKey({ id }),
-        UpdateExpression: "SET #status = :status",
+        UpdateExpression: "SET #gsi1pk = :status, #status = :status",
         ExpressionAttributeNames: {
           "#id": "id",
           "#status": "status",
+          "#gsi1pk": "gsi1pk",
         },
         ExpressionAttributeValues: {
           ":status": status,

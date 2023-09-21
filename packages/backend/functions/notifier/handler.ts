@@ -4,10 +4,25 @@ import {
   PresenceEvent,
 } from "@btc-guessr/transport";
 
+import {
+  IoTDataPlaneClient,
+  PublishCommand,
+} from "@aws-sdk/client-iot-data-plane";
+
+const client = new IoTDataPlaneClient({});
+
 export const handler = async (
-  event: GameEvent | PresenceEvent | PredictionEvent | null
+  events: Array<GameEvent | PresenceEvent | PredictionEvent>
 ) => {
-  if (!event) {
-    return;
-  }
+  const pendingSends = events.map((event) => {
+    return client.send(
+      new PublishCommand({
+        topic: "game",
+        payload: JSON.stringify(event),
+        qos: 1,
+      })
+    );
+  });
+
+  await Promise.all(pendingSends);
 };

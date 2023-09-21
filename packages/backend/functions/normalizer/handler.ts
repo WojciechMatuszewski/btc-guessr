@@ -10,16 +10,22 @@ import { UserEntity } from "../../entity/user";
 import { PredictionEntity } from "../../entity/prediction";
 import { GameEntity } from "../../entity/game";
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export const handler = async (event: DynamoDBRecord[]) => {
   const [record] = event;
   if (!record?.dynamodb) {
     throw new Error("Malformed data");
   }
 
-  const { NewImage = {}, OldImage = {} } = record.dynamodb;
+  const { NewImage, OldImage } = record.dynamodb;
 
-  const oldItem = unmarshall(OldImage as Record<string, AttributeValue>);
-  const newItem = unmarshall(NewImage as Record<string, AttributeValue>);
+  const oldItem = OldImage
+    ? unmarshall(OldImage as Record<string, AttributeValue>)
+    : null;
+
+  const newItem = NewImage
+    ? unmarshall(NewImage as Record<string, AttributeValue>)
+    : null;
   /**
    * To make type-guards work
    */

@@ -12,6 +12,7 @@
   "dependencies": {
     "@aws-amplify/pubsub": "5.5.5",
     "@btc-guessr/transport": "workspace:*",
+    "@tanstack/react-query": "4.35.3",
     "aws-amplify": "5.3.11",
     "react": "18.2.0",
     "react-dom": "18.2.0",

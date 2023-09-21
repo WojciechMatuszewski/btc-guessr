@@ -15,21 +15,27 @@ const UnsubscribeEventSchema = object({
   topics: array(string([includes("game")])),
 });
 
+const DisconnectedEventSchema = object({
+  clientId: string(),
+  eventType: literal("disconnected"),
+});
+
 const DATA_TABLE_NAME = process.env["DATA_TABLE_NAME"] as string;
 const client = DynamoDBDocument.from(new DynamoDBClient({}));
 
 export const handler = async (event: unknown) => {
   const userEntity = new UserEntity(DATA_TABLE_NAME, client);
 
-  /**
-   * These could be out of order.
-   */
   if (is(SubscribeEventSchema, event)) {
     await userEntity.upsertUser({ status: "CONNECTED", id: event.clientId });
     return;
   }
 
-  if (is(UnsubscribeEventSchema, event)) {
+  /**
+   * When the user closes the browser, the "unsubscribed" event is not fired.
+   * Instead we should listen to the "disconnected event"
+   */
+  if (is(UnsubscribeEventSchema, event) || is(DisconnectedEventSchema, event)) {
     await userEntity.upsertUser({ status: "DISCONNECTED", id: event.clientId });
     return;
   }

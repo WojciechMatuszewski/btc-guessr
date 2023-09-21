@@ -194,18 +194,52 @@ class IoT extends Construct {
     );
     props.dataTable.grantWriteData(presenceFunction);
 
-    new cdk.aws_iot.CfnTopicRule(this, "PresenceRule", {
-      topicRulePayload: {
-        actions: [{ lambda: { functionArn: presenceFunction.functionArn } }],
-        sql: "SELECT * from '$aws/events/subscriptions/+/+'",
-        awsIotSqlVersion: "2016-03-23",
-        errorAction: {
-          cloudwatchLogs: {
-            logGroupName: "testiotcore",
-            roleArn: "arn:aws:iam::484156073071:role/service-role/testiotcore",
+    const subscriptionRule = new cdk.aws_iot.CfnTopicRule(
+      this,
+      "SubscriptionPresenceRule",
+      {
+        topicRulePayload: {
+          actions: [{ lambda: { functionArn: presenceFunction.functionArn } }],
+          sql: "SELECT * from '$aws/events/subscriptions/+/+'",
+          awsIotSqlVersion: "2016-03-23",
+          errorAction: {
+            cloudwatchLogs: {
+              logGroupName: "testiotcore",
+              roleArn:
+                "arn:aws:iam::484156073071:role/service-role/testiotcore",
+            },
           },
         },
-      },
+      }
+    );
+    presenceFunction.addPermission("AllowSubscriptionPresenceRuleInvoke", {
+      principal: new cdk.aws_iam.ServicePrincipal("iot.amazonaws.com"),
+      action: "lambda:InvokeFunction",
+      sourceArn: subscriptionRule.attrArn,
+    });
+
+    const connectionRule = new cdk.aws_iot.CfnTopicRule(
+      this,
+      "ConnectionPresenceRule",
+      {
+        topicRulePayload: {
+          actions: [{ lambda: { functionArn: presenceFunction.functionArn } }],
+          sql: "SELECT * from '$aws/events/presence/disconnected/+'",
+          awsIotSqlVersion: "2016-03-23",
+          errorAction: {
+            cloudwatchLogs: {
+              logGroupName: "testiotcore",
+              roleArn:
+                "arn:aws:iam::484156073071:role/service-role/testiotcore",
+            },
+          },
+        },
+      }
+    );
+    presenceFunction.addPermission("AllowConnectionPresenceRuleInvoke", {
+      principal: new cdk.aws_iam.ServicePrincipal("iot.amazonaws.com"),
+      action: "lambda:InvokeFunction",
+      sourceArn: connectionRule.attrArn,
     });
   }
 }
@@ -233,7 +267,7 @@ class Ticker extends Construct {
 
     new cdk.aws_events.Rule(this, "TickerRule", {
       schedule: cdk.aws_events.Schedule.rate(cdk.Duration.minutes(1)),
-      enabled: false,
+      enabled: true,
       targets: [
         new cdk.aws_events_targets.LambdaFunction(tickerFunction, {
           retryAttempts: 0,
@@ -272,6 +306,18 @@ class Notifier extends Construct {
         handler: "handler",
         entry: join(__dirname, "../functions/notifier/handler.ts"),
       }
+    );
+    notifierFunction.addToRolePolicy(
+      new cdk.aws_iam.PolicyStatement({
+        effect: cdk.aws_iam.Effect.ALLOW,
+        actions: ["iot:Publish"],
+        resources: [
+          /**
+           * TODO: Seems like one has to specify a '*' here?
+           */
+          "*",
+        ],
+      })
     );
 
     const pipeRole = new cdk.aws_iam.Role(this, "PipeRole", {

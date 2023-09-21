@@ -54,15 +54,20 @@ export class PredictionEntity {
       prediction,
     };
 
+    console.log({ gameId, userId, prediction });
+
     await this.client.transactWrite({
       TransactItems: [
         {
           ConditionCheck: {
             TableName: this.tableName,
-            ConditionExpression: "attribute_exists(#pk) AND #gameId = :gameId",
+            ConditionExpression: "attribute_exists(#pk) AND #id = :gameId",
             ExpressionAttributeNames: {
               "#pk": "pk",
-              "#gameId": "#gameId",
+              "#id": "id",
+            },
+            ExpressionAttributeValues: {
+              ":gameId": gameId,
             },
             Key: GameEntity.gameKey(),
           },
