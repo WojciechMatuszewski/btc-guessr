@@ -332,6 +332,7 @@ class Notifier extends Construct {
         entry: join(__dirname, "../functions/normalizer/handler.ts"),
       }
     );
+    props.dataTable.grantReadData(normalizerFunction);
 
     const notifierFunction = new cdk.aws_lambda_nodejs.NodejsFunction(
       this,

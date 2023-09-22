@@ -1,16 +1,23 @@
-import { AttributeValue } from "@aws-sdk/client-dynamodb";
+import { AttributeValue, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import {
   GameEvent,
   PredictionEvent,
   PresenceEvent,
+  User,
 } from "@btc-guessr/transport";
 import { DynamoDBRecord } from "aws-lambda";
 import { UserEntity } from "../../entity/user";
 import { PredictionEntity } from "../../entity/prediction";
-import { GameEntity } from "../../entity/game";
+import { DEFAULT_GAME_ROOM, GameEntity } from "../../entity/game";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 
-// eslint-disable-next-line @typescript-eslint/require-await
+const DATA_TABLE_NAME = process.env["DATA_TABLE_NAME"] as string;
+const client = DynamoDBDocument.from(new DynamoDBClient({}));
+
+const predictionEntity = new PredictionEntity(DATA_TABLE_NAME, client);
+const gameEntity = new GameEntity(DATA_TABLE_NAME, client);
+
 export const handler = async (event: DynamoDBRecord[]) => {
   const [record] = event;
   if (!record?.dynamodb) {
@@ -41,8 +48,14 @@ export const handler = async (event: DynamoDBRecord[]) => {
   }
 
   if (UserEntity.isUserItemPresenceChange(dataChangePayload)) {
+    const user = UserEntity.toUser(dataChangePayload.newItem);
+    const predictionForUser = await getPredictionForUser({ user });
+
     const event: PresenceEvent = {
-      payload: UserEntity.toUser(dataChangePayload.newItem),
+      payload: {
+        ...UserEntity.toUser(dataChangePayload.newItem),
+        prediction: predictionForUser,
+      },
       type: "presence",
     };
 
@@ -59,4 +72,25 @@ export const handler = async (event: DynamoDBRecord[]) => {
   }
 
   return null;
+};
+
+const getPredictionForUser = async ({ user }: { user: User }) => {
+  const currentGameItem = await gameEntity.getGameItem({
+    room: DEFAULT_GAME_ROOM,
+  });
+  if (!currentGameItem) {
+    return null;
+  }
+
+  const userPredictionForGame = await predictionEntity.getPredictionItemForUser(
+    {
+      gameId: currentGameItem.id,
+      userId: user.id,
+    }
+  );
+  if (!userPredictionForGame?.prediction) {
+    return null;
+  }
+
+  return userPredictionForGame.prediction;
 };

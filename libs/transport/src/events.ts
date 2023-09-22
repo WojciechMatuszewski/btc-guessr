@@ -1,9 +1,13 @@
 import { Output, is, literal, object } from "valibot";
-import { GameSchema, PredictionSchema, UserSchema } from "./types";
+import {
+  GameSchema,
+  PredictionSchema,
+  UserWithPredictionSchema,
+} from "./types";
 
 const PresenceEventSchema = object({
   type: literal("presence"),
-  payload: UserSchema,
+  payload: UserWithPredictionSchema,
 });
 export type PresenceEvent = Output<typeof PresenceEventSchema>;
 

@@ -116,6 +116,28 @@ export class PredictionEntity {
     return validatedPredictions;
   }
 
+  async getPredictionItemForUser({
+    gameId,
+    userId,
+  }: {
+    gameId: string;
+    userId: string;
+  }): Promise<PredictionItem | null> {
+    const { Item } = await this.client.get({
+      TableName: this.tableName,
+      Key: PredictionEntity.predictionKey({ gameId, userId }),
+    });
+    if (!Item) {
+      return null;
+    }
+
+    if (!is(PredictionItemSchema, Item)) {
+      throw new Error("Malformed data");
+    }
+
+    return Item;
+  }
+
   static predictionKey({
     userId,
     gameId,
