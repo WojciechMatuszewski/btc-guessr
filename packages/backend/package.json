@@ -2,8 +2,6 @@
   "name": "backend",
   "version": "0.1.0",
   "scripts": {
-    "build": "tsx",
-    "watch": "tsx -w",
     "cdk": "cdk",
     "test": "vitest --config ./test/vitest.config.ts",
     "deploy": "cdk deploy --require-approval never --outputs-file ../../.stack-outputs.json",
@@ -20,7 +18,6 @@
     "change-case": "4.1.2",
     "esbuild": "0.19.3",
     "p-retry": "6.0.0",
-    "tsx": "3.12.10",
     "vitest": "0.34.4"
   },
   "dependencies": {
@@ -36,6 +33,7 @@
     "aws-cdk-lib": "2.96.2",
     "constructs": "10.2.70",
     "ulidx": "2.1.0",
-    "valibot": "0.17.0"
+    "valibot": "0.17.0",
+    "wretch": "2.7.0"
   }
 }

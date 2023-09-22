@@ -56,6 +56,8 @@ export class BackendStack extends cdk.Stack {
     new Api(this, "Api", { dataTable: data.table });
 
     new ScoreSummarizer(this, "ScoreSummarizer", { dataTable: data.table });
+
+    new Website(this, "Website");
   }
 }
 
@@ -529,5 +531,31 @@ class ScoreSummarizer extends Construct {
         ],
       })
     );
+  }
+}
+
+class Website extends Construct {
+  constructor(scope: Construct, id: string) {
+    super(scope, id);
+
+    const websiteBucket = new cdk.aws_s3.Bucket(this, "WebsiteBucket", {
+      websiteIndexDocument: "index.html",
+      publicReadAccess: true,
+      autoDeleteObjects: true,
+      blockPublicAccess: cdk.aws_s3.BlockPublicAccess.BLOCK_ACLS,
+      accessControl: cdk.aws_s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
+      /**
+       * Special case.
+       * It seems like this constructs somehow runs BEFORE the aspect to apply this setting is run.
+       */
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+    new cdk.CfnOutput(this, "WebsiteAddress", {
+      value: websiteBucket.bucketWebsiteUrl,
+    }).overrideLogicalId("WebsiteAddress");
+
+    new cdk.CfnOutput(this, "WebsiteBucketName", {
+      value: websiteBucket.bucketName,
+    }).overrideLogicalId("WebsiteBucketName");
   }
 }

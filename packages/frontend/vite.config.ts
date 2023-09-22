@@ -7,6 +7,7 @@ outputsToEnv();
 
 export default defineConfig({
   plugins: [react(), nodePolyfills()],
+
   resolve: {
     alias: [
       /**
@@ -22,6 +23,21 @@ export default defineConfig({
     include: ["@btc-guessr/transport"],
   },
   build: {
+    rollupOptions: {
+      /**
+       * https://github.com/vitejs/vite-plugin-react/issues/137
+       */
+      onLog: (level, log, defaultHandler) => {
+        if (
+          log.code === "MODULE_LEVEL_DIRECTIVE" &&
+          log.message.includes("use client")
+        ) {
+          return;
+        }
+
+        defaultHandler(level, log);
+      },
+    },
     commonjsOptions: {
       include: [/transport/, /node_modules/],
     },

@@ -1,7 +1,10 @@
 import { existsSync, readFileSync } from "fs";
-import { join } from "path";
+import { join, dirname } from "path";
 import { parse, record, string } from "valibot";
 import { constantCase } from "change-case";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const OUTPUTS_FILE_PATH = join(__dirname, "../../..", ".stack-outputs.json");
 

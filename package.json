@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "scripts": {
     "format": "prettier --write .",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "dev": "turbo dev --filter=@btc-guessr/transport --filter=frontend",
+    "build": "turbo build",
+    "deploy": "turbo deploy",
+    "deploy-website": "turbo deploy-website"
   },
   "devDependencies": {
     "@tsconfig/node18": "18.2.2",
@@ -14,7 +18,9 @@
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-prettier": "5.0.0",
     "prettier": "3.0.3",
-    "typescript": "5.0.2"
+    "turbo": "1.10.14",
+    "typescript": "5.0.2",
+    "tsx": "3.12.10"
   },
   "volta": {
     "node": "18.18.0",

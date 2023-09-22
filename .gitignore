@@ -27,3 +27,4 @@ cdk.out
 *.njsproj
 *.sln
 *.sw?
+.turbo
