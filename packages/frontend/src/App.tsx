@@ -4,7 +4,7 @@ import { getUserId } from "./lib/amplify";
 
 function App() {
   return (
-    <GameStateProvider userId={getUserId()}>
+    <GameStateProvider currentUserId={getUserId()}>
       <GameView currentUserId={getUserId()} />
     </GameStateProvider>
   );

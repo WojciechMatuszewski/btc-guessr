@@ -27,7 +27,7 @@ interface GameState {
 }
 
 interface GameStateProviderProps {
-  userId: string;
+  currentUserId: string;
   children: React.ReactNode;
 }
 
@@ -37,7 +37,7 @@ const GameDispatchContext = createContext<Dispatch<
 > | null>(null);
 
 export const GameStateProvider = ({
-  userId,
+  currentUserId,
   children,
 }: GameStateProviderProps) => {
   const [gameState, dispatch] = useReducer(gameStateReducer, null);
@@ -45,7 +45,7 @@ export const GameStateProvider = ({
   useEffect(() => {
     const subscription = PubSub.subscribe("game").subscribe((event) => {
       if (isPresenceEvent(event.value)) {
-        if (event.value.payload.id === userId) {
+        if (event.value.payload.id === currentUserId) {
           return;
         }
 
@@ -64,10 +64,10 @@ export const GameStateProvider = ({
     return () => {
       subscription.unsubscribe();
     };
-  }, [userId]);
+  }, [currentUserId]);
 
   const { isLoading, isError } = useFetchGameState({
-    userId,
+    userId: currentUserId,
     onSuccess: (fetchedGameState) => {
       dispatch({ type: "hydrateState", payload: fetchedGameState });
     },
