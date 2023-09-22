@@ -21,9 +21,11 @@ const UserKeySchema = object({
 type UserKey = Output<typeof UserKeySchema>;
 
 const UserByStatusKeySchema = object({
-  gsi1pk: union([literal("CONNECTED"), literal("DISCONNECTED")]),
+  gsi1pk: union([
+    string([startsWith("CONNECTED#ROOM#")]),
+    literal("DISCONNECTED"),
+  ]),
 });
-type UserByStatusKey = Output<typeof UserByStatusKeySchema>;
 
 const UserAttributesSchema = object({
   status: union([literal("CONNECTED"), literal("DISCONNECTED")]),
@@ -44,7 +46,7 @@ const ConnectedUserSchema = merge([
   UserItemSchema,
   object({
     status: literal("CONNECTED"),
-    gsi1pk: literal("CONNECTED"),
+    gsi1pk: string([startsWith("CONNECTED#ROOM#")]),
   }),
 ]);
 type ConnectedUser = Output<typeof ConnectedUserSchema>;
@@ -55,47 +57,49 @@ export class UserEntity {
     private client: DynamoDBDocument
   ) {}
 
-  async upsertUser({ status, id }: { status: UserStatus; id: string }) {
-    if (status === "CONNECTED") {
-      const userName = `${randProductAdjective()} ${randAnimal()}`;
+  async userConnected({ id, room }: { id: string; room: string }) {
+    const userName = `${randProductAdjective()} ${randAnimal()}`;
+    const status: UserStatus = "CONNECTED";
 
-      await this.client.update({
-        TableName: this.tableName,
-        Key: UserEntity.userKey({ id }),
-        UpdateExpression:
-          "SET #gsi1pk = :status, #status = :status, #name = if_not_exists(#name, :name), #id = if_not_exists(#id, :id), #score = if_not_exists(#score, :score)",
-        ExpressionAttributeNames: {
-          "#name": "name",
-          "#status": "status",
-          "#id": "id",
-          "#score": "score",
-          "#gsi1pk": "gsi1pk",
-        },
-        ExpressionAttributeValues: {
-          ":name": userName,
-          ":status": status,
-          ":id": id,
-          ":score": 0,
-        },
-      });
-    }
+    await this.client.update({
+      TableName: this.tableName,
+      Key: UserEntity.userKey({ id }),
+      UpdateExpression:
+        "SET #gsi1pk = :gsi1pk, #status = :status, #name = if_not_exists(#name, :name), #id = if_not_exists(#id, :id), #score = if_not_exists(#score, :score)",
+      ExpressionAttributeNames: {
+        "#name": "name",
+        "#status": "status",
+        "#id": "id",
+        "#score": "score",
+        "#gsi1pk": "gsi1pk",
+      },
+      ExpressionAttributeValues: {
+        ":name": userName,
+        ":status": status,
+        ":gsi1pk": `${status}#ROOM#${room}`,
+        ":id": id,
+        ":score": 0,
+      },
+    });
+  }
 
-    if (status === "DISCONNECTED") {
-      await this.client.update({
-        TableName: this.tableName,
-        Key: UserEntity.userKey({ id }),
-        UpdateExpression: "SET #gsi1pk = :status, #status = :status",
-        ExpressionAttributeNames: {
-          "#id": "id",
-          "#status": "status",
-          "#gsi1pk": "gsi1pk",
-        },
-        ExpressionAttributeValues: {
-          ":status": status,
-        },
-        ConditionExpression: "attribute_exists(#id)",
-      });
-    }
+  async userDisconnected({ id }: { id: string }) {
+    const status: UserStatus = "DISCONNECTED";
+
+    await this.client.update({
+      TableName: this.tableName,
+      Key: UserEntity.userKey({ id }),
+      UpdateExpression: "SET #gsi1pk = :status, #status = :status",
+      ExpressionAttributeNames: {
+        "#id": "id",
+        "#status": "status",
+        "#gsi1pk": "gsi1pk",
+      },
+      ExpressionAttributeValues: {
+        ":status": status,
+      },
+      ConditionExpression: "attribute_exists(#id)",
+    });
   }
 
   async getUserItem({ id }: { id: string }): Promise<UserItem> {
@@ -110,13 +114,17 @@ export class UserEntity {
     return parse(UserItemSchema, Item);
   }
 
-  async getConnectedUserItems(): Promise<ConnectedUser[]> {
+  async getConnectedUserItems({
+    room,
+  }: {
+    room: string;
+  }): Promise<ConnectedUser[]> {
     const { Items = [] } = await this.client.query({
       TableName: this.tableName,
       IndexName: "ByUserStatus",
       KeyConditionExpression: "#gsi1pk = :status",
       ExpressionAttributeValues: {
-        ":status": "CONNECTED",
+        ":status": `CONNECTED#ROOM#${room}`,
       },
       ExpressionAttributeNames: {
         "#gsi1pk": "gsi1pk",
@@ -134,14 +142,6 @@ export class UserEntity {
       pk: "USER",
       sk: `USER#${id}`,
     };
-  }
-
-  static userByStatusKey({
-    status,
-  }: {
-    status: UserItem["status"];
-  }): UserByStatusKey {
-    return { gsi1pk: status };
   }
 
   static isUserItem(data: unknown): data is UserItem {

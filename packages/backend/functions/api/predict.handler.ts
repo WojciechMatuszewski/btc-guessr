@@ -5,6 +5,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import middy from "@middy/core";
 import httpCors from "@middy/http-cors";
+import { DEFAULT_GAME_ROOM } from "../../entity/game";
 
 const PathParametersSchema = object({
   gameId: string(),
@@ -51,7 +52,7 @@ const lambdaHandler: APIGatewayProxyHandler = async (event) => {
     gameId: pathParametersParseResult.output.gameId,
     userId: bodyParseResult.output.userId,
     prediction: bodyParseResult.output.prediction,
-    room: "default",
+    room: DEFAULT_GAME_ROOM,
   });
 
   return { statusCode: 201, body: "{}" };

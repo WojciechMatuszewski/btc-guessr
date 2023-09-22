@@ -1,7 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyHandler } from "aws-lambda";
-import { GameEntity } from "../../entity/game";
+import { DEFAULT_GAME_ROOM, GameEntity } from "../../entity/game";
 import { UserEntity } from "../../entity/user";
 import { PredictionEntity } from "../../entity/prediction";
 import middy from "@middy/core";
@@ -17,8 +17,14 @@ const lambdaHandler: APIGatewayProxyHandler = async () => {
 
   const [gameItem, connectedUserItems] = await Promise.all([
     await gameEntity.getGameItem(),
-    await userEntity.getConnectedUserItems(),
+    await userEntity.getConnectedUserItems({ room: DEFAULT_GAME_ROOM }),
   ]);
+  if (!gameItem) {
+    return {
+      statusCode: 404,
+      body: JSON.stringify({ message: "Game not found" }),
+    };
+  }
 
   const game = GameEntity.toGame(gameItem);
   const users = connectedUserItems.map((connectedUserItem) => {

@@ -14,15 +14,17 @@ test("fails when trying to make a prediction for a game that does not exist", as
   const predictionEntity = new PredictionEntity(DATA_TABLE_NAME, client);
 
   const userId = ulid();
-  await userEntity.upsertUser({
+  const roomId = ulid();
+
+  await userEntity.userConnected({
     id: userId,
-    status: "CONNECTED",
+    room: roomId,
   });
 
   await expect(
     predictionEntity.predict({
       gameId: "xx",
-      room: "xx",
+      room: roomId,
       userId,
       prediction: "DOWN",
     })
@@ -34,7 +36,10 @@ test("fails when trying to make a prediction with invalid user", async () => {
   const gameEntity = new GameEntity(DATA_TABLE_NAME, client);
 
   const roomId = ulid();
-  const game = await gameEntity.newGameItem({ room: roomId });
+  const game = await gameEntity.newGameItem({
+    room: roomId,
+    value: Math.random(),
+  });
 
   await expect(
     predictionEntity.predict({
@@ -52,13 +57,17 @@ test("succeeds when making a prediction for a valid game", async () => {
   const gameEntity = new GameEntity(DATA_TABLE_NAME, client);
 
   const userId = ulid();
-  await userEntity.upsertUser({
+  const roomId = ulid();
+
+  await userEntity.userConnected({
     id: userId,
-    status: "CONNECTED",
+    room: roomId,
   });
 
-  const roomId = ulid();
-  const gameItem = await gameEntity.newGameItem({ room: roomId });
+  const gameItem = await gameEntity.newGameItem({
+    room: roomId,
+    value: Math.random(),
+  });
 
   await expect(
     predictionEntity.predict({

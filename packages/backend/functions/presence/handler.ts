@@ -2,6 +2,7 @@ import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { UserEntity } from "../../entity/user";
 import { array, includes, is, literal, object, string } from "valibot";
+import { DEFAULT_GAME_ROOM } from "../../entity/game";
 
 const SubscribeEventSchema = object({
   clientId: string(),
@@ -27,7 +28,10 @@ export const handler = async (event: unknown) => {
   const userEntity = new UserEntity(DATA_TABLE_NAME, client);
 
   if (is(SubscribeEventSchema, event)) {
-    await userEntity.upsertUser({ status: "CONNECTED", id: event.clientId });
+    await userEntity.userConnected({
+      id: event.clientId,
+      room: DEFAULT_GAME_ROOM,
+    });
     return;
   }
 
@@ -36,7 +40,9 @@ export const handler = async (event: unknown) => {
    * Instead we should listen to the "disconnected event"
    */
   if (is(UnsubscribeEventSchema, event) || is(DisconnectedEventSchema, event)) {
-    await userEntity.upsertUser({ status: "DISCONNECTED", id: event.clientId });
+    await userEntity.userDisconnected({
+      id: event.clientId,
+    });
     return;
   }
 

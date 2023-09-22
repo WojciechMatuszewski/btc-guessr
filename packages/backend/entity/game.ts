@@ -49,18 +49,23 @@ const GameResultSchema = merge([
 ]);
 type GameResultItem = Output<typeof GameResultSchema>;
 
+export const DEFAULT_GAME_ROOM = "default";
+
 export class GameEntity {
   constructor(
     private tableName: string,
     private client: DynamoDBDocument
   ) {}
 
-  async newGameItem(
-    { room }: { room: string } = { room: "default" }
-  ): Promise<GameItem> {
+  async newGameItem({
+    room,
+    value,
+  }: {
+    room: string;
+    value: number;
+  }): Promise<GameItem> {
     const currentGame = await this.getGameItem({ room });
 
-    const newGameValue = Math.random();
     const newGameId = ulid();
     const newGameKey = GameEntity.gameKey({ room });
 
@@ -76,7 +81,7 @@ export class GameEntity {
         },
         ExpressionAttributeValues: {
           ":id": newGameId,
-          ":value": newGameValue,
+          ":value": value,
         },
       },
     });
@@ -86,7 +91,7 @@ export class GameEntity {
           TableName: this.tableName,
           Item: this.computeGameResultItem({
             gameItem: currentGame,
-            newValue: newGameValue,
+            newValue: value,
           }),
           ConditionExpression: "attribute_not_exists(#pk)",
           ExpressionAttributeNames: {
@@ -102,7 +107,7 @@ export class GameEntity {
 
     const newGame: GameItem = {
       ...newGameKey,
-      value: newGameValue,
+      value,
       id: newGameId,
     };
 
@@ -110,7 +115,7 @@ export class GameEntity {
   }
 
   async getGameItem(
-    { room }: { room: string } = { room: "default" }
+    { room }: { room: string } = { room: DEFAULT_GAME_ROOM }
   ): Promise<GameItem | null> {
     /**
      * So that we have something to start with.
@@ -131,6 +136,26 @@ export class GameEntity {
     return Item;
   }
 
+  async getGameResultItem({
+    id,
+  }: {
+    id: string;
+  }): Promise<GameResultItem | null> {
+    const { Item } = await this.client.get({
+      TableName: this.tableName,
+      Key: GameEntity.gameResultKey({ id }),
+    });
+    if (!Item) {
+      return null;
+    }
+
+    if (!is(GameResultSchema, Item)) {
+      throw new Error("Malformed data");
+    }
+
+    return Item;
+  }
+
   private computeGameResultItem({
     gameItem,
     newValue,
@@ -138,7 +163,7 @@ export class GameEntity {
     gameItem: GameItem;
     newValue: number;
   }): GameResultItem {
-    const difference = gameItem.value - newValue;
+    const difference = newValue - gameItem.value;
     const correctPrediction: GameResultItem["correctPrediction"] =
       difference < 0 ? "DOWN" : "UP";
 
