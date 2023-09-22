@@ -31,6 +31,10 @@ Amplify.addPluggable(
 );
 
 const getUserId = () => {
+  if (!userId) {
+    throw new Error("Application integrity issue. UserId is not defined");
+  }
+
   return userId;
 };
 

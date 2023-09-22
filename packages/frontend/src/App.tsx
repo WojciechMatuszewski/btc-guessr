@@ -11,6 +11,8 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { PubSub } from "aws-amplify";
 import { useEffect, useState } from "react";
+import { GameStateProvider } from "./game/GameStateProvider";
+import { getUserId } from "./lib/amplify";
 
 console.log(import.meta.env);
 
@@ -30,12 +32,14 @@ console.log(import.meta.env);
 
 function App() {
   return (
-    <Container p="4">
-      <Flex direction={"column"} gap="8">
-        <TickerCard value={100} />
-        <UsersTable />
-      </Flex>
-    </Container>
+    <GameStateProvider userId={getUserId()}>
+      <Container p="4">
+        <Flex direction={"column"} gap="8">
+          <TickerCard value={100} />
+          <UsersTable />
+        </Flex>
+      </Container>
+    </GameStateProvider>
   );
   // const { isLoading, error, data } = useGetGame();
   // if (error) {

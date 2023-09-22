@@ -27,11 +27,14 @@ const client = DynamoDBDocument.from(new DynamoDBClient({}));
 export const handler = async (event: unknown) => {
   const userEntity = new UserEntity(DATA_TABLE_NAME, client);
 
+  console.log("event", event);
+
   if (is(SubscribeEventSchema, event)) {
     await userEntity.userConnected({
       id: event.clientId,
       room: DEFAULT_GAME_ROOM,
     });
+
     return;
   }
 

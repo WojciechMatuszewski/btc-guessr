@@ -6,6 +6,7 @@ import { UserEntity } from "../../entity/user";
 import { PredictionEntity } from "../../entity/prediction";
 import middy from "@middy/core";
 import httpCors from "@middy/http-cors";
+import { UserWithPrediction } from "@btc-guessr/transport";
 
 const DATA_TABLE_NAME = process.env["DATA_TABLE_NAME"] as string;
 const client = DynamoDBDocument.from(new DynamoDBClient({}));
@@ -26,24 +27,27 @@ const lambdaHandler: APIGatewayProxyHandler = async () => {
     };
   }
 
-  const game = GameEntity.toGame(gameItem);
-  const users = connectedUserItems.map((connectedUserItem) => {
-    return UserEntity.toUser(connectedUserItem);
-  });
-
   const predictionItemsForGame = await predictionEntity.getPredictionItems({
     gameId: gameItem.id,
   });
-  const predictions = predictionItemsForGame.map((predictionItem) => {
-    return PredictionEntity.toPrediction(predictionItem);
-  });
+
+  const game = GameEntity.toGame(gameItem);
+  const usersWithPredictions: UserWithPrediction[] = connectedUserItems.map(
+    (connectedUserItem) => {
+      const user = UserEntity.toUser(connectedUserItem);
+      const predictionForUser = predictionItemsForGame.find((prediction) => {
+        return prediction.userId === user.id;
+      });
+
+      return { ...user, prediction: predictionForUser?.prediction ?? null };
+    }
+  );
 
   return {
     statusCode: 200,
     body: JSON.stringify({
       game,
-      predictions,
-      users,
+      users: usersWithPredictions,
     }),
   };
 };

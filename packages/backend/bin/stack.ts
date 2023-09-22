@@ -22,6 +22,9 @@ export class BackendStack extends cdk.Stack {
           onCreate: {
             service: "Iot",
             action: "DescribeEndpoint",
+            parameters: {
+              endpointType: "iot:Data-ATS",
+            },
             physicalResourceId:
               cdk.custom_resources.PhysicalResourceId.fromResponse(
                 "endpointAddress"
@@ -301,7 +304,7 @@ class Ticker extends Construct {
 
     new cdk.aws_events.Rule(this, "TickerRule", {
       schedule: cdk.aws_events.Schedule.rate(cdk.Duration.minutes(1)),
-      enabled: false,
+      enabled: true,
       targets: [
         new cdk.aws_events_targets.LambdaFunction(tickerFunction, {
           retryAttempts: 0,
@@ -330,6 +333,9 @@ class Notifier extends Construct {
       {
         handler: "handler",
         entry: join(__dirname, "../functions/normalizer/handler.ts"),
+        environment: {
+          DATA_TABLE_NAME: props.dataTable.tableName,
+        },
       }
     );
     props.dataTable.grantReadData(normalizerFunction);
