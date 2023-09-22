@@ -102,6 +102,40 @@ export class UserEntity {
     });
   }
 
+  async updateUsersScore({ scores }: { scores: Record<string, 1 | -1> }) {
+    /**
+     * Optimization: One could use PartiQL here since it supports `BatchUpdate`.
+     */
+    const updateItems = Object.entries(scores).map(([userId, scoreUpdate]) => {
+      const attributeNames = { "#score": "score" };
+
+      const attributeValues =
+        scoreUpdate === -1
+          ? { ":one": 1, ":score": scoreUpdate }
+          : { ":score": scoreUpdate };
+
+      /**
+       * We have to ensure that we do not dip below 0
+       */
+      const conditionExpression =
+        scoreUpdate === -1 ? "#score >= :one" : undefined;
+
+      return this.client.update({
+        TableName: this.tableName,
+        Key: UserEntity.userKey({ id: userId }),
+        UpdateExpression: "ADD #score :score",
+        ConditionExpression: conditionExpression,
+        ExpressionAttributeNames: attributeNames,
+        ExpressionAttributeValues: attributeValues,
+      });
+    });
+
+    /**
+     * Improvement: handle the errors here and retry the update if it fails due to transient issue
+     */
+    await Promise.allSettled(updateItems);
+  }
+
   async getUserItem({ id }: { id: string }): Promise<UserItem> {
     const { Item } = await this.client.get({
       TableName: this.tableName,

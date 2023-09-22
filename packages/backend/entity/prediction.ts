@@ -97,12 +97,14 @@ export class PredictionEntity {
   }: {
     gameId: string;
   }): Promise<PredictionItem[]> {
+    const predictionsKey = PredictionEntity.predictionsKey({ gameId });
+
     const { Items = [] } = await this.client.query({
       TableName: this.tableName,
       KeyConditionExpression: "pk = :pk AND begins_with(#sk, :sk)",
       ExpressionAttributeValues: {
-        ":pk": `GAME#${gameId}`,
-        ":sk": "PREDICTION#",
+        ":pk": predictionsKey.pk,
+        ":sk": predictionsKey.sk,
       },
       ExpressionAttributeNames: {
         "#sk": "sk",
@@ -148,6 +150,13 @@ export class PredictionEntity {
     return {
       pk: `GAME#${gameId}`,
       sk: `PREDICTION#${userId}`,
+    };
+  }
+
+  static predictionsKey({ gameId }: { gameId: string }): PredictionKey {
+    return {
+      pk: `GAME#${gameId}`,
+      sk: `PREDICTION#`,
     };
   }
 

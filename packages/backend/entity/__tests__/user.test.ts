@@ -53,3 +53,59 @@ test(
 
   { timeout: 15_000 }
 );
+
+test(
+  "updates the user scores, never dips below 0",
+  async () => {
+    const userEntity = new UserEntity(DATA_TABLE_NAME, client);
+
+    const firstUserId = ulid();
+    const secondUserId = ulid();
+
+    const roomId = ulid();
+
+    await Promise.all([
+      await userEntity.userConnected({ id: firstUserId, room: roomId }),
+      await userEntity.userConnected({ id: secondUserId, room: roomId }),
+    ]);
+
+    /**
+     * Ensure that the users are connected
+     */
+
+    await pRetry(
+      async () => {
+        await expect(
+          userEntity.getConnectedUserItems({ room: roomId })
+        ).resolves.toHaveLength(2);
+      },
+      { retries: 3 }
+    );
+
+    await userEntity.updateUsersScore({
+      scores: {
+        [firstUserId]: -1,
+        [secondUserId]: 1,
+      },
+    });
+
+    await pRetry(
+      async () => {
+        await expect(
+          userEntity.getUserItem({ id: firstUserId })
+        ).resolves.toEqual(expect.objectContaining({ score: 0 }));
+      },
+      { retries: 3 }
+    );
+
+    await pRetry(
+      async () => {
+        await expect(
+          userEntity.getUserItem({ id: secondUserId })
+        ).resolves.toEqual(expect.objectContaining({ score: 1 }));
+      },
+      { retries: 3 }
+    );
+  },
+  { timeout: 25_000 }
+);

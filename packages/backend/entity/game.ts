@@ -15,6 +15,7 @@ import {
   string,
   union,
 } from "valibot";
+import { PredictionEntity } from "./prediction";
 
 const GameKeySchema = object({
   pk: literal("GAME"),
@@ -154,6 +155,36 @@ export class GameEntity {
     }
 
     return Item;
+  }
+
+  async calculateScoresForGame({
+    id,
+    predictionEntity,
+  }: {
+    id: string;
+    predictionEntity: PredictionEntity;
+  }): Promise<Record<string, 1 | -1>> {
+    /**
+     * Optimization: we could use a single query here instead.
+     */
+    const [gameResultItem, gamePredictionItems] = await Promise.all([
+      await this.getGameResultItem({ id }),
+      await predictionEntity.getPredictionItems({ gameId: id }),
+    ]);
+    if (!gameResultItem) {
+      return {};
+    }
+
+    const scoresForGame = gamePredictionItems.reduce(
+      (scores, prediction) => {
+        scores[prediction.userId] =
+          gameResultItem.correctPrediction === prediction.prediction ? 1 : -1;
+        return scores;
+      },
+      {} as Record<string, 1 | -1>
+    );
+
+    return scoresForGame;
   }
 
   private computeGameResultItem({
