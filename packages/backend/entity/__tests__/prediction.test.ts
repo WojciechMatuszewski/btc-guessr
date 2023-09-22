@@ -20,6 +20,7 @@ test("fails when trying to make a prediction for a game that does not exist", as
   await userEntity.userConnected({
     id: userId,
     room: roomId,
+    timestampMs: Date.now(),
   });
 
   await expect(
@@ -65,6 +66,7 @@ test(
     await userEntity.userConnected({
       id: userId,
       room: roomId,
+      timestampMs: Date.now(),
     });
 
     const gameItem = await gameEntity.newGameItem({

@@ -75,9 +75,21 @@ test(
     const thirdUserId = ulid();
 
     await Promise.all([
-      await userEntity.userConnected({ id: firstUserId, room: roomId }),
-      await userEntity.userConnected({ id: secondUserId, room: roomId }),
-      await userEntity.userConnected({ id: thirdUserId, room: roomId }),
+      await userEntity.userConnected({
+        id: firstUserId,
+        room: roomId,
+        timestampMs: Date.now(),
+      }),
+      await userEntity.userConnected({
+        id: secondUserId,
+        room: roomId,
+        timestampMs: Date.now(),
+      }),
+      await userEntity.userConnected({
+        id: thirdUserId,
+        room: roomId,
+        timestampMs: Date.now(),
+      }),
     ]);
 
     const valueOfTheFirstGame = 1;

@@ -5,22 +5,50 @@ import {
   IconButton,
   Table,
   Text,
+  VisuallyHidden,
 } from "@radix-ui/themes";
 import { useGameDispatch, useGameState } from "./GameStateProvider";
 import { ThickArrowUpIcon, ThickArrowDownIcon } from "@radix-ui/react-icons";
 import { Prediction, UserWithPrediction } from "@btc-guessr/transport";
 import { useMutation } from "@tanstack/react-query";
 
-export const GameView = () => {
+interface GameViewProps {
+  currentUserId: string;
+}
+
+export const GameView = ({ currentUserId }: GameViewProps) => {
   const gameState = useGameState();
+
+  const usersByCurrentUser = [...gameState.users].sort((userA, userB) => {
+    /**
+     * Push A before B
+     */
+    if (userA.id === currentUserId) {
+      return -1;
+    }
+
+    /**
+     * Push B after A
+     */
+    if (userB.id === currentUserId) {
+      return 1;
+    }
+
+    return 0;
+  });
 
   return (
     <Container>
       <TickerCard value={gameState.game.value} />
       <UsersTable>
-        {gameState.users.map((user) => {
+        {usersByCurrentUser.map((user) => {
           return (
-            <UserRow gameId={gameState.game.id} key={user.id} user={user} />
+            <UserRow
+              isCurrentUser={currentUserId === user.id}
+              gameId={gameState.game.id}
+              key={user.id}
+              user={user}
+            />
           );
         })}
       </UsersTable>
@@ -67,25 +95,33 @@ const UsersTable = ({ children }: UsersTableProps) => {
 interface UserRowProps {
   user: UserWithPrediction;
   gameId: string;
+  isCurrentUser: boolean;
 }
 
-const UserRow = ({ user, gameId }: UserRowProps) => {
+const UserRow = ({ user, gameId, isCurrentUser }: UserRowProps) => {
   const dispatch = useGameDispatch();
 
   const { mutate: makePrediction, isLoading } = useMakePrediction({
-    onSuccess: () => {
+    onSuccess: (prediction) => {
       dispatch({
         type: "prediction",
-        payload: { gameId, prediction: "", userId: user.id },
+        payload: { gameId, prediction, userId: user.id },
       });
     },
   });
 
   return (
     <Table.Row align={"center"}>
-      <Table.RowHeaderCell>{user.name}</Table.RowHeaderCell>
+      <Table.RowHeaderCell>
+        {isCurrentUser ? (
+          <Text weight={"bold"}>{user.name} (You)</Text>
+        ) : (
+          <Text>{user.name}</Text>
+        )}
+      </Table.RowHeaderCell>
       <Table.Cell>
         <PredictionButtons
+          isCurrentUser={isCurrentUser}
           isLoading={isLoading}
           currentPrediction={user.prediction}
           onPrediction={(prediction) => {
@@ -102,12 +138,14 @@ interface PredictionButtonsProps {
   onPrediction: (prediction: NonNullable<Prediction["prediction"]>) => void;
   currentPrediction: Prediction["prediction"];
   isLoading: boolean;
+  isCurrentUser: boolean;
 }
 
 const PredictionButtons = ({
   isLoading,
   onPrediction,
   currentPrediction,
+  isCurrentUser,
 }: PredictionButtonsProps) => {
   const handleOnClick = (prediction: NonNullable<Prediction["prediction"]>) => {
     if (currentPrediction) {
@@ -117,28 +155,39 @@ const PredictionButtons = ({
     onPrediction(prediction);
   };
 
+  const otherPlayerStyles: React.CSSProperties = {
+    opacity: currentPrediction ? 1 : 0.5,
+    pointerEvents: "none",
+  };
+
+  let fieldsetStyles: React.CSSProperties = {
+    margin: 0,
+    padding: 0,
+    border: 0,
+  };
+  if (!isCurrentUser) {
+    fieldsetStyles = { ...fieldsetStyles, ...otherPlayerStyles };
+  }
+
   return (
     <Flex gap="3" asChild={true}>
-      <fieldset
-        style={{ margin: 0, padding: 0, border: 0 }}
-        disabled={isLoading}
-      >
+      <fieldset style={fieldsetStyles} disabled={isLoading}>
         <IconButton
           disabled={currentPrediction === "DOWN"}
           variant={currentPrediction === "UP" ? "solid" : "soft"}
           color="green"
-          style={{ cursor: "pointer" }}
           onClick={() => handleOnClick("UP")}
         >
+          <VisuallyHidden>Vote up</VisuallyHidden>
           <ThickArrowUpIcon />
         </IconButton>
         <IconButton
           disabled={currentPrediction === "UP"}
           variant={currentPrediction === "DOWN" ? "solid" : "soft"}
           color="red"
-          style={{ cursor: "pointer" }}
           onClick={() => handleOnClick("DOWN")}
         >
+          <VisuallyHidden>Vote down</VisuallyHidden>
           <ThickArrowDownIcon />
         </IconButton>
       </fieldset>
@@ -146,7 +195,11 @@ const PredictionButtons = ({
   );
 };
 
-const useMakePrediction = ({ onSuccess }: { onSuccess: VoidFunction }) => {
+const useMakePrediction = ({
+  onSuccess,
+}: {
+  onSuccess: (prediction: NonNullable<Prediction["prediction"]>) => void;
+}) => {
   return useMutation({
     mutationFn: async ({
       userId,
@@ -169,6 +222,9 @@ const useMakePrediction = ({ onSuccess }: { onSuccess: VoidFunction }) => {
       if (!response.ok) {
         throw new Error(await response.text());
       }
+
+      return prediction;
     },
+    onSuccess,
   });
 };

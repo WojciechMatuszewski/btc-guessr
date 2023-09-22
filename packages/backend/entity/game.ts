@@ -42,13 +42,14 @@ const GameResultAttributesSchema = object({
   currentValue: number(),
   difference: number(),
   correctPrediction: union([literal("UP"), literal("DOWN")]),
+  gameId: string(),
 });
 
 const GameResultSchema = merge([
   GameResultKeySchema,
   GameResultAttributesSchema,
 ]);
-type GameResultItem = Output<typeof GameResultSchema>;
+export type GameResultItem = Output<typeof GameResultSchema>;
 
 export const DEFAULT_GAME_ROOM = "default";
 
@@ -200,6 +201,7 @@ export class GameEntity {
 
     const gameResult: GameResultItem = {
       ...GameEntity.gameResultKey({ id: gameItem.id }),
+      gameId: gameItem.id,
       previousValue: gameItem.value,
       currentValue: newValue,
       correctPrediction,
@@ -215,6 +217,10 @@ export class GameEntity {
 
   static isGameItem(data: unknown): data is GameItem {
     return is(GameItemSchema, data);
+  }
+
+  static isGameResultItem(data: unknown): data is GameResultItem {
+    return is(GameResultSchema, data);
   }
 
   static gameResultKey({ id }: { id: string }): GameResultKey {

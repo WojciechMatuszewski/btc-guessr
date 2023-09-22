@@ -26,6 +26,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.415.0",
     "@aws-sdk/client-iot-data-plane": "3.414.0",
+    "@aws-sdk/client-sqs": "3.414.0",
     "@aws-sdk/lib-dynamodb": "3.415.0",
     "@aws-sdk/util-dynamodb": "3.415.0",
     "@btc-guessr/transport": "workspace:*",

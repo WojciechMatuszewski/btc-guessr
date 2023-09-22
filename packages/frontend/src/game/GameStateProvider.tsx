@@ -248,13 +248,23 @@ const gameStateReducer = (
       }
 
       if (event.payload.status === "CONNECTED") {
+        /**
+         * To avoid race conditions.
+         */
+        const isAlreadyInState = state.users.find(
+          (user) => user.id === event.payload.id
+        );
+        if (isAlreadyInState) {
+          return state;
+        }
+
         const newUsers = [...state.users, event.payload];
         return { ...state, users: newUsers };
       }
 
       if (event.payload.status === "DISCONNECTED") {
         const newUsers = state.users.filter((user) => {
-          return user.id === event.payload.id;
+          return user.id !== event.payload.id;
         });
         return { ...state, users: newUsers };
       }
@@ -291,6 +301,7 @@ const gameStateReducer = (
       const newUsers = state.users.map((user) => {
         const userPrediction = user.prediction;
         if (!userPrediction) {
+          user.prediction = null;
           return user;
         }
 
@@ -299,9 +310,10 @@ const gameStateReducer = (
         }
 
         if (userPrediction !== correctPrediction) {
-          user.score = Math.min(0, user.score - 1);
+          user.score = Math.max(0, user.score - 1);
         }
 
+        user.prediction = null;
         return user;
       });
 

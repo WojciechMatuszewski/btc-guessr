@@ -34,7 +34,8 @@ export const handler = async (event: DynamoDBRecord[]) => {
     ? unmarshall(NewImage as Record<string, AttributeValue>)
     : null;
   /**
-   * To make type-guards work
+   * To make type-guards work.
+   * TypeScript is not smart enough to deduce the types when we pass {oldItem, newItem} into the functions.
    */
   const dataChangePayload = { oldItem, newItem };
 

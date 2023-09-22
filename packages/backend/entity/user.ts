@@ -32,6 +32,7 @@ const UserAttributesSchema = object({
   id: string([]),
   name: string(),
   score: number(),
+  lastSeenMs: number(),
 });
 
 const UserItemSchema = merge([
@@ -57,7 +58,15 @@ export class UserEntity {
     private client: DynamoDBDocument
   ) {}
 
-  async userConnected({ id, room }: { id: string; room: string }) {
+  async userConnected({
+    id,
+    room,
+    timestampMs,
+  }: {
+    id: string;
+    room: string;
+    timestampMs: number;
+  }) {
     const userName = `${randProductAdjective()} ${randAnimal()}`;
     const status: UserStatus = "CONNECTED";
 
@@ -65,13 +74,14 @@ export class UserEntity {
       TableName: this.tableName,
       Key: UserEntity.userKey({ id }),
       UpdateExpression:
-        "SET #gsi1pk = :gsi1pk, #status = :status, #name = if_not_exists(#name, :name), #id = if_not_exists(#id, :id), #score = if_not_exists(#score, :score)",
+        "SET #gsi1pk = :gsi1pk, #lastSeenMs = :lastSeenMs, #status = :status, #name = if_not_exists(#name, :name), #id = if_not_exists(#id, :id), #score = if_not_exists(#score, :score)",
       ExpressionAttributeNames: {
         "#name": "name",
         "#status": "status",
         "#id": "id",
         "#score": "score",
         "#gsi1pk": "gsi1pk",
+        "#lastSeenMs": "lastSeenMs",
       },
       ExpressionAttributeValues: {
         ":name": userName,
@@ -79,26 +89,37 @@ export class UserEntity {
         ":gsi1pk": `${status}#ROOM#${room}`,
         ":id": id,
         ":score": 0,
+        ":lastSeenMs": timestampMs,
       },
     });
   }
 
-  async userDisconnected({ id }: { id: string }) {
+  async userDisconnected({
+    id,
+    timestampMs,
+  }: {
+    id: string;
+    timestampMs: number;
+  }) {
     const status: UserStatus = "DISCONNECTED";
 
     await this.client.update({
       TableName: this.tableName,
       Key: UserEntity.userKey({ id }),
-      UpdateExpression: "SET #gsi1pk = :status, #status = :status",
+      UpdateExpression:
+        "SET #gsi1pk = :status, #status = :status, #lastSeenMs = :lastSeenMs",
       ExpressionAttributeNames: {
         "#id": "id",
         "#status": "status",
         "#gsi1pk": "gsi1pk",
+        "#lastSeenMs": "lastSeenMs",
       },
       ExpressionAttributeValues: {
         ":status": status,
+        ":lastSeenMs": timestampMs,
       },
-      ConditionExpression: "attribute_exists(#id)",
+      ConditionExpression:
+        "attribute_exists(#id) AND #lastSeenMs <= :lastSeenMs",
     });
   }
 

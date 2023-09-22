@@ -1,4 +1,4 @@
-import { Output, is, literal, object } from "valibot";
+import { Output, is, literal, number, object, string } from "valibot";
 import {
   GameSchema,
   PredictionSchema,
@@ -30,4 +30,18 @@ const GameEventSchema = object({
 export type GameEvent = Output<typeof GameEventSchema>;
 export const isGameEvent = (event: unknown): event is GameEvent => {
   return is(GameEventSchema, event);
+};
+
+const DisconnectionEventSchema = object({
+  type: literal("disconnection"),
+  payload: object({
+    timestampMs: number(),
+    userId: string(),
+  }),
+});
+export type DisconnectionEvent = Output<typeof DisconnectionEventSchema>;
+export const isDisconnectionEvent = (
+  event: unknown
+): event is DisconnectionEvent => {
+  return is(DisconnectionEventSchema, event);
 };

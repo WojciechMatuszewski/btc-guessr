@@ -47,13 +47,15 @@ export class BackendStack extends cdk.Stack {
 
     new Auth(this, "Auth");
 
-    new IoT(this, "IoT", { dataTable: data.table });
+    new Presence(this, "Presence", { dataTable: data.table });
 
     new Ticker(this, "Ticker", { dataTable: data.table });
 
     new Notifier(this, "Notifier", { dataTable: data.table });
 
     new Api(this, "Api", { dataTable: data.table });
+
+    new ScoreSummarizer(this, "ScoreSummarizer", { dataTable: data.table });
   }
 }
 
@@ -210,13 +212,38 @@ class Auth extends Construct {
   }
 }
 
-interface IoTProps {
+interface PresenceProps {
   dataTable: cdk.aws_dynamodb.Table;
 }
 
-class IoT extends Construct {
-  constructor(scope: Construct, id: string, props: IoTProps) {
+class Presence extends Construct {
+  constructor(scope: Construct, id: string, props: PresenceProps) {
     super(scope, id);
+
+    const disconnecterFunction = new cdk.aws_lambda_nodejs.NodejsFunction(
+      this,
+      "DisconnecterFunction",
+      {
+        handler: "handler",
+        entry: join(__dirname, "../functions/presence/disconnecter.handler.ts"),
+        environment: {
+          DATA_TABLE_NAME: props.dataTable.tableName,
+        },
+      }
+    );
+    props.dataTable.grantWriteData(disconnecterFunction);
+
+    const disconnectionsQueue = new cdk.aws_sqs.Queue(
+      this,
+      "DisconnectionsQueue"
+    );
+    new cdk.CfnOutput(this, "DisconnectionsQueueUrl", {
+      value: disconnectionsQueue.queueUrl,
+    }).overrideLogicalId("DisconnectionsQueueUrl");
+
+    disconnecterFunction.addEventSource(
+      new cdk.aws_lambda_event_sources.SqsEventSource(disconnectionsQueue)
+    );
 
     const presenceFunction = new cdk.aws_lambda_nodejs.NodejsFunction(
       this,
@@ -226,10 +253,12 @@ class IoT extends Construct {
         entry: join(__dirname, "../functions/presence/handler.ts"),
         environment: {
           DATA_TABLE_NAME: props.dataTable.tableName,
+          DISCONNECTIONS_QUEUE_URL: disconnectionsQueue.queueUrl,
         },
       }
     );
     props.dataTable.grantWriteData(presenceFunction);
+    disconnectionsQueue.grantSendMessages(presenceFunction);
 
     const subscriptionRule = new cdk.aws_iot.CfnTopicRule(
       this,
@@ -239,13 +268,6 @@ class IoT extends Construct {
           actions: [{ lambda: { functionArn: presenceFunction.functionArn } }],
           sql: "SELECT * from '$aws/events/subscriptions/+/+'",
           awsIotSqlVersion: "2016-03-23",
-          errorAction: {
-            cloudwatchLogs: {
-              logGroupName: "testiotcore",
-              roleArn:
-                "arn:aws:iam::484156073071:role/service-role/testiotcore",
-            },
-          },
         },
       }
     );
@@ -263,13 +285,6 @@ class IoT extends Construct {
           actions: [{ lambda: { functionArn: presenceFunction.functionArn } }],
           sql: "SELECT * from '$aws/events/presence/disconnected/+'",
           awsIotSqlVersion: "2016-03-23",
-          errorAction: {
-            cloudwatchLogs: {
-              logGroupName: "testiotcore",
-              roleArn:
-                "arn:aws:iam::484156073071:role/service-role/testiotcore",
-            },
-          },
         },
       }
     );
@@ -298,13 +313,14 @@ class Ticker extends Construct {
         environment: {
           DATA_TABLE_NAME: props.dataTable.tableName,
         },
+        timeout: cdk.Duration.seconds(10),
       }
     );
     props.dataTable.grantReadWriteData(tickerFunction);
 
     new cdk.aws_events.Rule(this, "TickerRule", {
       schedule: cdk.aws_events.Schedule.rate(cdk.Duration.minutes(1)),
-      enabled: false,
+      enabled: true,
       targets: [
         new cdk.aws_events_targets.LambdaFunction(tickerFunction, {
           retryAttempts: 0,
@@ -336,6 +352,7 @@ class Notifier extends Construct {
         environment: {
           DATA_TABLE_NAME: props.dataTable.tableName,
         },
+        timeout: cdk.Duration.seconds(10),
       }
     );
     props.dataTable.grantReadData(normalizerFunction);
@@ -471,5 +488,46 @@ class Api extends Construct {
     new cdk.CfnOutput(this, "PredictEndpointUrl", {
       value: api.urlForPath(predictResource.path),
     }).overrideLogicalId("PredictEndpointUrl");
+  }
+}
+
+interface ScoreSummarizerProps {
+  dataTable: cdk.aws_dynamodb.Table;
+}
+
+class ScoreSummarizer extends Construct {
+  constructor(scope: Construct, id: string, props: ScoreSummarizerProps) {
+    super(scope, id);
+
+    const summarizerFunction = new cdk.aws_lambda_nodejs.NodejsFunction(
+      this,
+      "Sum",
+      {
+        handler: "handler",
+        entry: join(__dirname, "../functions/summarizer/handler.ts"),
+        environment: {
+          DATA_TABLE_NAME: props.dataTable.tableName,
+        },
+        timeout: cdk.Duration.seconds(10),
+      }
+    );
+    props.dataTable.grantReadWriteData(summarizerFunction);
+
+    summarizerFunction.addEventSource(
+      new cdk.aws_lambda_event_sources.DynamoEventSource(props.dataTable, {
+        retryAttempts: 0,
+        startingPosition: cdk.aws_lambda.StartingPosition.LATEST,
+        filters: [
+          cdk.aws_lambda.FilterCriteria.filter({
+            dynamodb: {
+              NewImage: {
+                pk: { S: [{ prefix: "GAME#" }] },
+                sk: { S: ["RESULT"] },
+              },
+            },
+          }),
+        ],
+      })
+    );
   }
 }

@@ -57,6 +57,9 @@ importers:
       '@aws-sdk/client-iot-data-plane':
         specifier: 3.414.0
         version: 3.414.0
+      '@aws-sdk/client-sqs':
+        specifier: 3.414.0
+        version: 3.414.0
       '@aws-sdk/lib-dynamodb':
         specifier: 3.415.0
         version: 3.415.0(@aws-sdk/client-dynamodb@3.415.0)
@@ -1134,6 +1137,54 @@ packages:
       - react-native
     dev: false
 
+  /@aws-sdk/client-sqs@3.414.0:
+    resolution: {integrity: sha512-5LcMkhemWcdQj1AcMJ5p/VmOGARlldSREvjRGFB5PDp/ZtFQpUB5Zus72QNHqXS8J2N9CBy5xfeXNc4n8kMyoQ==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      '@aws-crypto/sha256-browser': 3.0.0
+      '@aws-crypto/sha256-js': 3.0.0
+      '@aws-sdk/client-sts': 3.414.0
+      '@aws-sdk/credential-provider-node': 3.414.0
+      '@aws-sdk/middleware-host-header': 3.413.0
+      '@aws-sdk/middleware-logger': 3.413.0
+      '@aws-sdk/middleware-recursion-detection': 3.413.0
+      '@aws-sdk/middleware-sdk-sqs': 3.413.0
+      '@aws-sdk/middleware-signing': 3.413.0
+      '@aws-sdk/middleware-user-agent': 3.413.0
+      '@aws-sdk/region-config-resolver': 3.413.0
+      '@aws-sdk/types': 3.413.0
+      '@aws-sdk/util-endpoints': 3.413.0
+      '@aws-sdk/util-user-agent-browser': 3.413.0
+      '@aws-sdk/util-user-agent-node': 3.413.0
+      '@smithy/config-resolver': 2.0.10
+      '@smithy/fetch-http-handler': 2.1.5
+      '@smithy/hash-node': 2.0.9
+      '@smithy/invalid-dependency': 2.0.9
+      '@smithy/md5-js': 2.0.9
+      '@smithy/middleware-content-length': 2.0.11
+      '@smithy/middleware-endpoint': 2.0.9
+      '@smithy/middleware-retry': 2.0.12
+      '@smithy/middleware-serde': 2.0.9
+      '@smithy/middleware-stack': 2.0.2
+      '@smithy/node-config-provider': 2.0.12
+      '@smithy/node-http-handler': 2.1.5
+      '@smithy/protocol-http': 3.0.5
+      '@smithy/smithy-client': 2.1.6
+      '@smithy/types': 2.3.3
+      '@smithy/url-parser': 2.0.9
+      '@smithy/util-base64': 2.0.0
+      '@smithy/util-body-length-browser': 2.0.0
+      '@smithy/util-body-length-node': 2.1.0
+      '@smithy/util-defaults-mode-browser': 2.0.10
+      '@smithy/util-defaults-mode-node': 2.0.12
+      '@smithy/util-retry': 2.0.2
+      '@smithy/util-utf8': 2.0.0
+      fast-xml-parser: 4.2.5
+      tslib: 2.6.2
+    transitivePeerDependencies:
+      - aws-crt
+    dev: false
+
   /@aws-sdk/client-sso@3.186.0:
     resolution: {integrity: sha512-qwLPomqq+fjvp42izzEpBEtGL2+dIlWH5pUCteV55hTEwHgo+m9LJPIrMWkPeoMBzqbNiu5n6+zihnwYlCIlEA==}
     engines: {node: '>=12.0.0'}
@@ -1942,6 +1993,17 @@ packages:
       uuid: 3.4.0
     transitivePeerDependencies:
       - react-native
+    dev: false
+
+  /@aws-sdk/middleware-sdk-sqs@3.413.0:
+    resolution: {integrity: sha512-TgiHDPP3aGx8/kIn1U13fglgxqHdgA5lJlpulCbHQhWkfYrZTZk23K8E5jLlm3RBBM9Um+U4DBvt7ldNR9Tz0A==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      '@aws-sdk/types': 3.413.0
+      '@smithy/types': 2.3.3
+      '@smithy/util-hex-encoding': 2.0.0
+      '@smithy/util-utf8': 2.0.0
+      tslib: 2.6.2
     dev: false
 
   /@aws-sdk/middleware-sdk-sts@3.186.0:
@@ -6127,6 +6189,14 @@ packages:
     engines: {node: '>=14.0.0'}
     dependencies:
       tslib: 2.6.2
+
+  /@smithy/md5-js@2.0.9:
+    resolution: {integrity: sha512-ALHGoTZDgBXBbjCpQzVy6hpa6Rdr6e2jyEw51d6CQOUpHkUnFH7G96UWhVwUnkP0xozPCvmWy+3+j2QUX+oK9w==}
+    dependencies:
+      '@smithy/types': 2.3.3
+      '@smithy/util-utf8': 2.0.0
+      tslib: 2.6.2
+    dev: false
 
   /@smithy/middleware-content-length@2.0.11:
     resolution: {integrity: sha512-Malj4voNTL4+a5ZL3a6+Ij7JTUMTa2R7c3ZIBzMxN5OUUgAspU7uFi1Q97f4B0afVh2joQBAWH5IQJUG25nl8g==}

@@ -20,7 +20,11 @@ test(
       userEntity.getConnectedUserItems({ room: roomId })
     ).resolves.toHaveLength(0);
 
-    await userEntity.userConnected({ id: userId, room: roomId });
+    await userEntity.userConnected({
+      id: userId,
+      room: roomId,
+      timestampMs: Date.now() - 10,
+    });
 
     /**
      * We are reading after writing, as such we should retry the assertion
@@ -37,7 +41,7 @@ test(
       { retries: 3 }
     );
 
-    await userEntity.userDisconnected({ id: userId });
+    await userEntity.userDisconnected({ id: userId, timestampMs: Date.now() });
 
     await pRetry(
       async () => {
@@ -54,6 +58,43 @@ test(
   { timeout: 15_000 }
 );
 
+test("disconnection operation fails if it fires before the connection", async () => {
+  const userEntity = new UserEntity(DATA_TABLE_NAME, client);
+
+  const userId = ulid();
+  const roomId = ulid();
+
+  await expect(
+    userEntity.getConnectedUserItems({ room: roomId })
+  ).resolves.toHaveLength(0);
+
+  const userConnectedTimestampMs = Date.now();
+
+  await userEntity.userConnected({
+    id: userId,
+    room: roomId,
+    timestampMs: userConnectedTimestampMs,
+  });
+
+  await pRetry(
+    async () => {
+      const connectedUsers = await userEntity.getConnectedUserItems({
+        room: roomId,
+      });
+
+      expect(connectedUsers).toHaveLength(1);
+    },
+    { retries: 3 }
+  );
+
+  await expect(
+    userEntity.userDisconnected({
+      id: userId,
+      timestampMs: userConnectedTimestampMs - 10,
+    })
+  ).rejects.toThrowError();
+});
+
 test(
   "updates the user scores, never dips below 0",
   async () => {
@@ -65,8 +106,16 @@ test(
     const roomId = ulid();
 
     await Promise.all([
-      await userEntity.userConnected({ id: firstUserId, room: roomId }),
-      await userEntity.userConnected({ id: secondUserId, room: roomId }),
+      await userEntity.userConnected({
+        id: firstUserId,
+        room: roomId,
+        timestampMs: Date.now(),
+      }),
+      await userEntity.userConnected({
+        id: secondUserId,
+        room: roomId,
+        timestampMs: Date.now(),
+      }),
     ]);
 
     /**
