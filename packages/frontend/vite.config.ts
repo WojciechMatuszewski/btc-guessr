@@ -18,4 +18,12 @@ export default defineConfig({
       },
     ],
   },
+  optimizeDeps: {
+    include: ["@btc-guessr/transport"],
+  },
+  build: {
+    commonjsOptions: {
+      include: [/transport/, /node_modules/],
+    },
+  },
 });
