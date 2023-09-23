@@ -1,3 +1,5 @@
+/// <reference types="vitest" />
+
 import { defineConfig } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import react from "@vitejs/plugin-react-swc";
@@ -7,7 +9,6 @@ outputsToEnv();
 
 export default defineConfig({
   plugins: [react(), nodePolyfills()],
-
   resolve: {
     alias: [
       /**
@@ -41,5 +42,9 @@ export default defineConfig({
     commonjsOptions: {
       include: [/transport/, /node_modules/],
     },
+  },
+  test: {
+    setupFiles: ["./test/setup.ts"],
+    environment: "jsdom",
   },
 });

@@ -55,7 +55,7 @@ export class BackendStack extends cdk.Stack {
 
     new Api(this, "Api", { dataTable: data.table });
 
-    new ScoreSummarizer(this, "ScoreSummarizer", { dataTable: data.table });
+    new ScoreDistributor(this, "ScoreDistributor", { dataTable: data.table });
 
     new Website(this, "Website");
   }
@@ -497,25 +497,25 @@ interface ScoreSummarizerProps {
   dataTable: cdk.aws_dynamodb.Table;
 }
 
-class ScoreSummarizer extends Construct {
+class ScoreDistributor extends Construct {
   constructor(scope: Construct, id: string, props: ScoreSummarizerProps) {
     super(scope, id);
 
-    const summarizerFunction = new cdk.aws_lambda_nodejs.NodejsFunction(
+    const distributorFunction = new cdk.aws_lambda_nodejs.NodejsFunction(
       this,
       "Sum",
       {
         handler: "handler",
-        entry: join(__dirname, "../functions/summarizer/handler.ts"),
+        entry: join(__dirname, "../functions/distributor/handler.ts"),
         environment: {
           DATA_TABLE_NAME: props.dataTable.tableName,
         },
         timeout: cdk.Duration.seconds(10),
       }
     );
-    props.dataTable.grantReadWriteData(summarizerFunction);
+    props.dataTable.grantReadWriteData(distributorFunction);
 
-    summarizerFunction.addEventSource(
+    distributorFunction.addEventSource(
       new cdk.aws_lambda_event_sources.DynamoEventSource(props.dataTable, {
         retryAttempts: 0,
         startingPosition: cdk.aws_lambda.StartingPosition.LATEST,

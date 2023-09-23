@@ -1,5 +1,6 @@
 import { Amplify, PubSub } from "aws-amplify";
 import { AWSIoTProvider } from "@aws-amplify/pubsub";
+import { v4 as uuid } from "uuid";
 
 const {
   VITE_IDENTITY_POOL_ID,
@@ -16,9 +17,12 @@ Amplify.configure({
   userPoolWebClientId: VITE_USER_POOL_CLIENT_ID as string,
 });
 
-let userId = localStorage.getItem("userId");
+let userId = localStorage.getItem("userIdv2");
 if (!userId) {
-  userId = "mqtt-explorer-" + Math.floor(Math.random() * 100000 + 1);
+  /**
+   * Ideally, we would be using ulid here, but the IoTProvider does not like ulids.
+   */
+  userId = uuid();
   localStorage.setItem("userId", userId);
 }
 

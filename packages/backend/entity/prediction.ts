@@ -1,4 +1,5 @@
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { Prediction } from "@btc-guessr/transport";
 import {
   Output,
   is,
@@ -12,7 +13,6 @@ import {
 } from "valibot";
 import { GameEntity } from "./game";
 import { UserEntity } from "./user";
-import { Prediction } from "@btc-guessr/transport";
 
 const PredictionKeySchema = object({
   pk: string([startsWith("GAME#")]),
@@ -59,6 +59,9 @@ export class PredictionEntity {
     await this.client.transactWrite({
       TransactItems: [
         {
+          /**
+           * The game exists
+           */
           ConditionCheck: {
             TableName: this.tableName,
             ConditionExpression: "attribute_exists(#pk) AND #id = :gameId",
@@ -73,6 +76,9 @@ export class PredictionEntity {
           },
         },
         {
+          /**
+           * The user exists
+           */
           ConditionCheck: {
             TableName: this.tableName,
             ConditionExpression: "attribute_exists(#pk)",
@@ -86,6 +92,13 @@ export class PredictionEntity {
           Put: {
             TableName: this.tableName,
             Item: predictionItem,
+            /**
+             * The prediction does not exist yet
+             */
+            ConditionExpression: "attribute_not_exists(#pk)",
+            ExpressionAttributeNames: {
+              "#pk": "pk",
+            },
           },
         },
       ],

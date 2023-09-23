@@ -13,6 +13,9 @@
       "dependsOn": ["backend#deploy"]
     },
     "lint": {},
-    "dev": {}
+    "typecheck": {},
+    "format": {},
+    "dev": {},
+    "test": {}
   }
 }

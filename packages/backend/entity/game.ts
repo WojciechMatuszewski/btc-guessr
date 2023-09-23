@@ -26,6 +26,7 @@ type GameKey = Output<typeof GameKeySchema>;
 const GameAttributesSchema = object({
   id: string(),
   value: number(),
+  createdAtMs: number(),
 });
 
 const GameItemSchema = merge([GameKeySchema, GameAttributesSchema]);
@@ -70,20 +71,24 @@ export class GameEntity {
 
     const newGameId = ulid();
     const newGameKey = GameEntity.gameKey({ room });
+    const createdAtMs = Date.now();
 
     const transactionItems: TransactWriteCommandInput["TransactItems"] = [];
     transactionItems.push({
       Update: {
         TableName: this.tableName,
         Key: newGameKey,
-        UpdateExpression: "SET #id = :id, #value = :value",
+        UpdateExpression:
+          "SET #id = :id, #value = :value, #createdAtMs = :createdAtMs",
         ExpressionAttributeNames: {
           "#id": "id",
           "#value": "value",
+          "#createdAtMs": "createdAtMs",
         },
         ExpressionAttributeValues: {
           ":id": newGameId,
           ":value": value,
+          ":createdAtMs": createdAtMs,
         },
       },
     });
@@ -95,6 +100,9 @@ export class GameEntity {
             gameItem: currentGame,
             newValue: value,
           }),
+          /**
+           * The result item for the previous game does not exist yet.
+           */
           ConditionExpression: "attribute_not_exists(#pk)",
           ExpressionAttributeNames: {
             "#pk": "pk",
@@ -110,6 +118,7 @@ export class GameEntity {
     const newGame: GameItem = {
       ...newGameKey,
       value,
+      createdAtMs,
       id: newGameId,
     };
 
@@ -235,6 +244,7 @@ export class GameEntity {
       room: gameItem.sk.replace("GAME#ROOM#", ""),
       id: gameItem.id,
       value: gameItem.value,
+      createdAtMs: gameItem.createdAtMs,
     };
   }
 

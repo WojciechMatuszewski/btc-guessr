@@ -15,13 +15,12 @@ import {
   Dispatch,
   ReducerAction,
   createContext,
-  useContext,
   useEffect,
   useReducer,
 } from "react";
 import { PubSub } from "../lib/amplify";
 
-interface GameState {
+export interface GameState {
   game: Game;
   users: UserWithPrediction[];
 }
@@ -31,8 +30,9 @@ interface GameStateProviderProps {
   children: React.ReactNode;
 }
 
-const GameStateContext = createContext<GameState | null>(null);
-const GameDispatchContext = createContext<Dispatch<
+export const GameStateContext = createContext<GameState | null>(null);
+
+export const GameDispatchContext = createContext<Dispatch<
   ReducerAction<typeof gameStateReducer>
 > | null>(null);
 
@@ -88,24 +88,6 @@ export const GameStateProvider = ({
       </GameDispatchContext.Provider>
     </GameStateContext.Provider>
   );
-};
-
-export const useGameState = () => {
-  const context = useContext(GameStateContext);
-  if (!context) {
-    throw new Error("`useGameState` used outside of the provider");
-  }
-
-  return context;
-};
-
-export const useGameDispatch = () => {
-  const context = useContext(GameDispatchContext);
-  if (!context) {
-    throw new Error("`useGameDispatch` used outside of the provider");
-  }
-
-  return context;
 };
 
 const LoadingScreen = () => {

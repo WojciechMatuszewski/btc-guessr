@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "scripts": {
     "cdk": "cdk",
-    "test": "vitest --config ./test/vitest.config.ts",
+    "test": "vitest run --config ./test/vitest.config.ts",
     "deploy": "cdk deploy --require-approval never --outputs-file ../../.stack-outputs.json",
     "bootstrap": "cdk bootstrap --toolkit-stack-name BTCGuessrBootstrap --qualifier btcguessr",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
     "synth": "cdk synth",
     "tsx": "tsx"
   },
@@ -35,5 +37,11 @@
     "ulidx": "2.1.0",
     "valibot": "0.17.0",
     "wretch": "2.7.0"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  },
+  "engines": {
+    "node": "18.18.0"
   }
 }

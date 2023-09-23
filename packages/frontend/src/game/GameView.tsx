@@ -1,16 +1,7 @@
-import {
-  Card,
-  Container,
-  Flex,
-  IconButton,
-  Table,
-  Text,
-  VisuallyHidden,
-} from "@radix-ui/themes";
-import { useGameDispatch, useGameState } from "./GameStateProvider";
-import { ThickArrowUpIcon, ThickArrowDownIcon } from "@radix-ui/react-icons";
-import { Prediction, UserWithPrediction } from "@btc-guessr/transport";
-import { useMutation } from "@tanstack/react-query";
+import { Container, Flex, Text } from "@radix-ui/themes";
+import { useCallback, useLayoutEffect, useState } from "react";
+import { UserRow, UsersTable } from "./Users";
+import { useGameState } from "./hooks";
 
 interface GameViewProps {
   currentUserId: string;
@@ -39,7 +30,17 @@ export const GameView = ({ currentUserId }: GameViewProps) => {
 
   return (
     <Container>
-      <TickerCard value={gameState.game.value} />
+      <Flex
+        direction={"column"}
+        px={"4"}
+        py={"6"}
+        style={{ margin: "0 auto" }}
+        width={"max-content"}
+        gap={"2"}
+      >
+        <TickerCard value={gameState.game.value} />
+        <TimeLeftInGame gameCreatedAtMs={gameState.game.createdAtMs} />
+      </Flex>
       <UsersTable>
         {usersByCurrentUser.map((user) => {
           return (
@@ -62,169 +63,57 @@ interface TickerCardProps {
 
 const TickerCard = ({ value }: TickerCardProps) => {
   return (
-    <Card style={{ width: "max-content" }} m="auto" variant="ghost">
-      <Flex gap="2" align={"center"} p="4" width={"max-content"}>
-        <Text size="8" color="yellow">
-          $BTC
-        </Text>
-        <Text size="8">{value}</Text>
-      </Flex>
-    </Card>
-  );
-};
-
-interface UsersTableProps {
-  children: React.ReactNode;
-}
-
-const UsersTable = ({ children }: UsersTableProps) => {
-  return (
-    <Table.Root variant="surface">
-      <Table.Header>
-        <Table.Row>
-          <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Prediction</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Points</Table.ColumnHeaderCell>
-        </Table.Row>
-      </Table.Header>
-      <Table.Body>{children}</Table.Body>
-    </Table.Root>
-  );
-};
-
-interface UserRowProps {
-  user: UserWithPrediction;
-  gameId: string;
-  isCurrentUser: boolean;
-}
-
-const UserRow = ({ user, gameId, isCurrentUser }: UserRowProps) => {
-  const dispatch = useGameDispatch();
-
-  const { mutate: makePrediction, isLoading } = useMakePrediction({
-    onSuccess: (prediction) => {
-      dispatch({
-        type: "prediction",
-        payload: { gameId, prediction, userId: user.id },
-      });
-    },
-  });
-
-  return (
-    <Table.Row align={"center"}>
-      <Table.RowHeaderCell>
-        {isCurrentUser ? (
-          <Text weight={"bold"}>{user.name} (You)</Text>
-        ) : (
-          <Text>{user.name}</Text>
-        )}
-      </Table.RowHeaderCell>
-      <Table.Cell>
-        <PredictionButtons
-          isCurrentUser={isCurrentUser}
-          isLoading={isLoading}
-          currentPrediction={user.prediction}
-          onPrediction={(prediction) => {
-            makePrediction({ gameId, prediction, userId: user.id });
-          }}
-        />
-      </Table.Cell>
-      <Table.Cell>{user.score}</Table.Cell>
-    </Table.Row>
-  );
-};
-
-interface PredictionButtonsProps {
-  onPrediction: (prediction: NonNullable<Prediction["prediction"]>) => void;
-  currentPrediction: Prediction["prediction"];
-  isLoading: boolean;
-  isCurrentUser: boolean;
-}
-
-const PredictionButtons = ({
-  isLoading,
-  onPrediction,
-  currentPrediction,
-  isCurrentUser,
-}: PredictionButtonsProps) => {
-  const handleOnClick = (prediction: NonNullable<Prediction["prediction"]>) => {
-    if (currentPrediction) {
-      return;
-    }
-
-    onPrediction(prediction);
-  };
-
-  const otherPlayerStyles: React.CSSProperties = {
-    opacity: currentPrediction ? 1 : 0.5,
-    pointerEvents: "none",
-  };
-
-  let fieldsetStyles: React.CSSProperties = {
-    margin: 0,
-    padding: 0,
-    border: 0,
-  };
-  if (!isCurrentUser) {
-    fieldsetStyles = { ...fieldsetStyles, ...otherPlayerStyles };
-  }
-
-  return (
-    <Flex gap="3" asChild={true}>
-      <fieldset style={fieldsetStyles} disabled={isLoading}>
-        <IconButton
-          disabled={currentPrediction === "DOWN"}
-          variant={currentPrediction === "UP" ? "solid" : "soft"}
-          color="green"
-          onClick={() => handleOnClick("UP")}
-        >
-          <VisuallyHidden>Vote up</VisuallyHidden>
-          <ThickArrowUpIcon />
-        </IconButton>
-        <IconButton
-          disabled={currentPrediction === "UP"}
-          variant={currentPrediction === "DOWN" ? "solid" : "soft"}
-          color="red"
-          onClick={() => handleOnClick("DOWN")}
-        >
-          <VisuallyHidden>Vote down</VisuallyHidden>
-          <ThickArrowDownIcon />
-        </IconButton>
-      </fieldset>
+    <Flex gap="2" align={"center"} width={"max-content"}>
+      <Text size="9" color="yellow">
+        $BTC
+      </Text>
+      <Text size="9">{value}</Text>
     </Flex>
   );
 };
 
-const useMakePrediction = ({
-  onSuccess,
-}: {
-  onSuccess: (prediction: NonNullable<Prediction["prediction"]>) => void;
-}) => {
-  return useMutation({
-    mutationFn: async ({
-      userId,
-      gameId,
-      prediction,
-    }: {
-      userId: string;
-      gameId: string;
-      prediction: NonNullable<Prediction["prediction"]>;
-    }) => {
-      const endpointUrl = (
-        import.meta.env.VITE_PREDICT_ENDPOINT_URL as string
-      ).replace("{gameId}", gameId);
+interface TimeLeftInGameProps {
+  gameCreatedAtMs: number;
+}
 
-      const response = await fetch(endpointUrl, {
-        method: "POST",
-        body: JSON.stringify({ userId, prediction: prediction }),
-      });
+const TimeLeftInGame = ({ gameCreatedAtMs }: TimeLeftInGameProps) => {
+  const calculateTimeLeft = useCallback(() => {
+    const createdAtPlusMinuteMs = gameCreatedAtMs + 60_000;
+    const nowMs = Date.now();
 
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
+    if (createdAtPlusMinuteMs <= nowMs) {
+      return 1;
+    }
 
-      return prediction;
-    },
-    onSuccess,
-  });
+    return Math.max(1, Math.floor((createdAtPlusMinuteMs - nowMs) / 1_000));
+  }, [gameCreatedAtMs]);
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft);
+
+  useLayoutEffect(() => {
+    /**
+     * The `setInterval` will first fire after a second.
+     * This creates a situation where the timer might seem to "lag" behind the value change.
+     * Firing the calculation here prevents this from happening.
+     */
+    setTimeLeft(calculateTimeLeft());
+
+    const intervalId = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1_000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [calculateTimeLeft]);
+
+  return (
+    <Text color={"gray"} size={"5"}>
+      About{" "}
+      <Text highContrast={true} size="6" color="iris">
+        {timeLeft}s
+      </Text>{" "}
+      left to make a prediction
+    </Text>
+  );
 };

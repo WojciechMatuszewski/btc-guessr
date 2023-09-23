@@ -2,8 +2,10 @@
   "name": "btc-guessr",
   "version": "1.0.0",
   "scripts": {
-    "format": "prettier --write .",
-    "lint": "eslint .",
+    "format": "turbo format",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "typecheck": "turbo typecheck",
     "dev": "turbo dev --filter=@btc-guessr/transport --filter=frontend",
     "build": "turbo build",
     "deploy": "turbo deploy",

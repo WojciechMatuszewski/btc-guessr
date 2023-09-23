@@ -9,10 +9,9 @@ const OutputsFileSchema = record(record(string()));
 
 export function outputsToEnv() {
   if (!existsSync(OUTPUTS_FILE_PATH)) {
-    console.warn(
+    throw new Error(
       "Outputs file not found. Did you forget to deploy the backend?"
     );
-    return;
   }
 
   const outputsFileContents: unknown = JSON.parse(

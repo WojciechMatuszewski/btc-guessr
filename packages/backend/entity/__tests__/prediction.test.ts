@@ -53,6 +53,44 @@ test("fails when trying to make a prediction with invalid user", async () => {
   ).rejects.toThrowError();
 });
 
+test("fails when trying to make more than one prediction for a game", async () => {
+  const userEntity = new UserEntity(DATA_TABLE_NAME, client);
+  const predictionEntity = new PredictionEntity(DATA_TABLE_NAME, client);
+  const gameEntity = new GameEntity(DATA_TABLE_NAME, client);
+
+  const userId = ulid();
+  const roomId = ulid();
+
+  await userEntity.userConnected({
+    id: userId,
+    room: roomId,
+    timestampMs: Date.now(),
+  });
+
+  const gameItem = await gameEntity.newGameItem({
+    room: roomId,
+    value: Math.random(),
+  });
+
+  await expect(
+    predictionEntity.predict({
+      gameId: gameItem.id,
+      room: roomId,
+      userId,
+      prediction: "DOWN",
+    })
+  ).resolves.toEqual(undefined);
+
+  await expect(
+    predictionEntity.predict({
+      gameId: gameItem.id,
+      room: roomId,
+      userId,
+      prediction: "UP",
+    })
+  ).rejects.toThrowError();
+});
+
 test(
   "succeeds when making a prediction for a valid game",
   async () => {

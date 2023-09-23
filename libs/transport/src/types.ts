@@ -15,6 +15,7 @@ export const GameSchema = object({
   id: string(),
   value: number(),
   room: string(),
+  createdAtMs: number(),
 });
 export type Game = Output<typeof GameSchema>;
 
