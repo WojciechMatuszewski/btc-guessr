@@ -11,7 +11,8 @@
     "deploy": "turbo deploy",
     "bootstrap": "turbo bootstrap",
     "deploy:website": "turbo deploy:website",
-    "deploy:without-hosting": "turbo deploy:without-hosting"
+    "deploy:without-hosting": "turbo deploy:without-hosting",
+    "destroy": "turbo run destroy"
   },
   "devDependencies": {
     "@tsconfig/node18": "18.2.2",

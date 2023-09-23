@@ -7,6 +7,7 @@
     "deploy": "cdk deploy --require-approval never --outputs-file ../../.stack-outputs.json",
     "deploy:without-hosting": "cdk deploy --require-approval never --outputs-file ../../.stack-outputs.json",
     "bootstrap": "cdk bootstrap --toolkit-stack-name BTCGuessrBootstrap --qualifier btcguessr",
+    "destroy": "cdk destroy --force",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",

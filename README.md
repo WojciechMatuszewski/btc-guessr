@@ -56,7 +56,7 @@ The output of this command will contain the link to the website.
 
 ## Running the application locally
 
-1. Deploy the backend, either with or without the hosting.
+1. Deploy the backend, either with or without the hosting
 
 2. Run the application locally
 
@@ -65,6 +65,16 @@ pnpm run dev
 ```
 
 3. Access the application at [http://localhost:5173/](http://localhost:5173/)
+
+## Tests
+
+1. Deploy the backend, either with or without the hosting
+
+2. Run the tests
+
+```shell
+pnpm run test
+```
 
 ## Architecture
 

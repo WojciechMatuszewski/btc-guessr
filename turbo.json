@@ -21,6 +21,7 @@
     "format": {},
     "dev": {},
     "test": {},
-    "bootstrap": {}
+    "bootstrap": {},
+    "destroy": {}
   }
 }
