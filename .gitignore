@@ -28,3 +28,4 @@ cdk.out
 *.sln
 *.sw?
 .turbo
+tsconfig.tsbuildinfo

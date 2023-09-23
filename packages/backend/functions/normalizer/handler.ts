@@ -49,6 +49,16 @@ export const handler = async (event: DynamoDBRecord[]) => {
   }
 
   if (UserEntity.isUserItemPresenceChange(dataChangePayload)) {
+    /**
+     * Users from different rooms are test users
+     */
+    if (
+      dataChangePayload.newItem.room &&
+      dataChangePayload.newItem.room !== DEFAULT_GAME_ROOM
+    ) {
+      return;
+    }
+
     const user = UserEntity.toUser(dataChangePayload.newItem);
     const predictionForUser = await getPredictionForUser({ user });
 

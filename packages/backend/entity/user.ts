@@ -7,6 +7,7 @@ import {
   merge,
   number,
   object,
+  optional,
   parse,
   startsWith,
   string,
@@ -33,6 +34,7 @@ const UserAttributesSchema = object({
   name: string(),
   score: number(),
   lastSeenMs: number(),
+  room: optional(string()),
 });
 
 const UserItemSchema = merge([
@@ -74,7 +76,7 @@ export class UserEntity {
       TableName: this.tableName,
       Key: UserEntity.userKey({ id }),
       UpdateExpression:
-        "SET #gsi1pk = :gsi1pk, #lastSeenMs = :lastSeenMs, #status = :status, #name = if_not_exists(#name, :name), #id = if_not_exists(#id, :id), #score = if_not_exists(#score, :score)",
+        "SET #gsi1pk = :gsi1pk, #room = :room, #lastSeenMs = :lastSeenMs, #status = :status, #name = if_not_exists(#name, :name), #id = if_not_exists(#id, :id), #score = if_not_exists(#score, :score)",
       ExpressionAttributeNames: {
         "#name": "name",
         "#status": "status",
@@ -82,6 +84,7 @@ export class UserEntity {
         "#score": "score",
         "#gsi1pk": "gsi1pk",
         "#lastSeenMs": "lastSeenMs",
+        "#room": "room",
       },
       ExpressionAttributeValues: {
         ":name": userName,
@@ -90,6 +93,7 @@ export class UserEntity {
         ":id": id,
         ":score": 0,
         ":lastSeenMs": timestampMs,
+        ":room": room,
       },
     });
   }
@@ -107,12 +111,13 @@ export class UserEntity {
       TableName: this.tableName,
       Key: UserEntity.userKey({ id }),
       UpdateExpression:
-        "SET #gsi1pk = :status, #status = :status, #lastSeenMs = :lastSeenMs",
+        "SET #gsi1pk = :status, #status = :status, #lastSeenMs = :lastSeenMs REMOVE #room",
       ExpressionAttributeNames: {
         "#id": "id",
         "#status": "status",
         "#gsi1pk": "gsi1pk",
         "#lastSeenMs": "lastSeenMs",
+        "#room": "room",
       },
       ExpressionAttributeValues: {
         ":status": status,

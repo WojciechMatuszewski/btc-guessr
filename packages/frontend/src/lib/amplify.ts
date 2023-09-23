@@ -17,13 +17,14 @@ Amplify.configure({
   userPoolWebClientId: VITE_USER_POOL_CLIENT_ID as string,
 });
 
-let userId = localStorage.getItem("userIdv2");
+const USER_ID_KEY = "userIdv2";
+let userId = localStorage.getItem(USER_ID_KEY);
 if (!userId) {
   /**
    * Ideally, we would be using ulid here, but the IoTProvider does not like ulids.
    */
   userId = uuid();
-  localStorage.setItem("userId", userId);
+  localStorage.setItem(USER_ID_KEY, userId);
 }
 
 Amplify.addPluggable(

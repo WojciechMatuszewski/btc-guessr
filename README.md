@@ -1,6 +1,6 @@
 # BTC Guesser
 
-Guess the next price of BTC in USD... with a twist – the multiplayer component!
+Guess the next price of BTC in USD... with a twist – it is a multiplayer game!
 
 _The price of the BTC in USD refreshes every 60 seconds or so_.
 
@@ -18,7 +18,7 @@ _Volta is a great tool to manage different versions of package managers and Node
 
 ## Deployment
 
-1. Ensure that your shell has the necessary AWS-related environment variables set. These are `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY_ID`, `AWS_SESSION_TOKEN` and `AWS_REGION`. To check which variables are set, please type the following:
+1. Ensure that your shell has the necessary AWS-related environment variables set. These are `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY_ID` and `AWS_SESSION_TOKEN`. To check which variables are set, please type the following:
 
 ```shell
 printenv | grep "AWS_"
@@ -26,13 +26,21 @@ printenv | grep "AWS_"
 
 _For local development & deployment, I was using a role with [AdministratorAccess](https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AdministratorAccess.html) policy_.
 
-2. Bootstrap the backend
+2. Install dependencies
+
+```shell
+pnpm i
+```
+
+3. Bootstrap the backend
 
 ```shell
 pnpm run bootstrap
 ```
 
-3. Deploy the backend
+**Note**: The `deploy` and `deploy:without-hosting` command use a [non-default qualifier](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html#bootstrapping-customizing). This is done to prevent any collisions with existing resources. This makes the **`bootstrap` a required step**, even if there already exists a "default" CDK boostrap in a given AWS account.
+
+4. Deploy the backend
 
 ```shell
 pnpm run deploy
@@ -44,7 +52,7 @@ pnpm run deploy
 pnpm run deploy:without-hosting
 ```
 
-4. (Optional) Upload the frontend artifacts to the "website hosting" bucket. The game is a multiplayer game, so it might be worth trying it out with others!
+5. (Optional) Upload the frontend artifacts to the "website hosting" bucket. The game is a multiplayer game, so it might be worth trying it out with others!
 
 ```shell
 pnpm run deploy:website
@@ -53,6 +61,8 @@ pnpm run deploy:website
 The output of this command will contain the link to the website.
 
 **Note**: This step will fail if you deployed the backend without hosting.
+
+**Note**: It can take up to a minute for the game state to populate right after deployment.
 
 ## Running the application locally
 
@@ -65,6 +75,8 @@ pnpm run dev
 ```
 
 3. Access the application at [http://localhost:5173/](http://localhost:5173/)
+
+**Note**: It can take up to a minute for the game state to populate right after deployment.
 
 ## Tests
 
@@ -155,7 +167,7 @@ And here is how the response looks like:
 
 ![API diagram](./docs/api.png)
 
-## Possible improvements
+## Possible additional features
 
 1. Surface the concept of "game rooms" to the client. The concept of a "game room" is only used on the backend for the purpose of making the testing easier. It enables the creation of isolated data entities which do not influence the running application.
 
