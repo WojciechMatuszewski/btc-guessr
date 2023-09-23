@@ -9,13 +9,18 @@
       "dependsOn": ["@btc-guessr/transport#build"],
       "outputs": ["cdk.out"]
     },
-    "deploy-website": {
-      "dependsOn": ["backend#deploy"]
+    "deploy:without-hosting": {
+      "dependsOn": ["@btc-guessr/transport#build"],
+      "outputs": ["cdk.out"]
+    },
+    "deploy:website": {
+      "dependsOn": ["frontend#build"]
     },
     "lint": {},
     "typecheck": {},
     "format": {},
     "dev": {},
-    "test": {}
+    "test": {},
+    "bootstrap": {}
   }
 }

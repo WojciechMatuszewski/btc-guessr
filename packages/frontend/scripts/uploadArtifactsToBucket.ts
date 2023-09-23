@@ -40,4 +40,8 @@ const uploads = files.map((filePath) => {
   );
 });
 
-void Promise.all(uploads);
+void Promise.all(uploads).then(() => {
+  console.log("---------");
+  console.log(process.env["WEBSITE_ADDRESS"]);
+  console.log("---------");
+});

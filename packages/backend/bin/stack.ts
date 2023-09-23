@@ -57,7 +57,9 @@ export class BackendStack extends cdk.Stack {
 
     new ScoreDistributor(this, "ScoreDistributor", { dataTable: data.table });
 
-    new Website(this, "Website");
+    if (process.env["NO_HOSTING"] !== "true") {
+      new Website(this, "Website");
+    }
   }
 }
 

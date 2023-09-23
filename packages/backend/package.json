@@ -5,6 +5,7 @@
     "cdk": "cdk",
     "test": "vitest run --config ./test/vitest.config.ts",
     "deploy": "cdk deploy --require-approval never --outputs-file ../../.stack-outputs.json",
+    "deploy:without-hosting": "cdk deploy --require-approval never --outputs-file ../../.stack-outputs.json",
     "bootstrap": "cdk bootstrap --toolkit-stack-name BTCGuessrBootstrap --qualifier btcguessr",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
@@ -18,6 +19,7 @@
     "@types/node": "20.5.9",
     "aws-cdk": "2.96.2",
     "change-case": "4.1.2",
+    "cross-env": "7.0.3",
     "esbuild": "0.19.3",
     "p-retry": "6.0.0",
     "vitest": "0.34.4"
