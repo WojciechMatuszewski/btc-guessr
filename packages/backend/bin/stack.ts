@@ -322,7 +322,7 @@ class Ticker extends Construct {
 
     new cdk.aws_events.Rule(this, "TickerRule", {
       schedule: cdk.aws_events.Schedule.rate(cdk.Duration.minutes(1)),
-      enabled: true,
+      enabled: false,
       targets: [
         new cdk.aws_events_targets.LambdaFunction(tickerFunction, {
           retryAttempts: 0,
@@ -440,19 +440,6 @@ class Api extends Construct {
     );
     props.dataTable.grantReadData(stateFunction);
 
-    const userFunction = new cdk.aws_lambda_nodejs.NodejsFunction(
-      this,
-      "UserFunction",
-      {
-        handler: "handler",
-        entry: join(__dirname, "../functions/api/user.handler.ts"),
-        environment: {
-          DATA_TABLE_NAME: props.dataTable.tableName,
-        },
-      }
-    );
-    props.dataTable.grantReadData(stateFunction);
-
     const api = new cdk.aws_apigateway.RestApi(this, "Api", {
       defaultCorsPreflightOptions: {
         allowOrigins: cdk.aws_apigateway.Cors.ALL_ORIGINS,
@@ -460,15 +447,6 @@ class Api extends Construct {
         allowMethods: cdk.aws_apigateway.Cors.ALL_METHODS,
       },
     });
-
-    const userResource = api.root.addResource("user").addResource("{userId}");
-    userResource.addMethod(
-      "GET",
-      new cdk.aws_apigateway.LambdaIntegration(userFunction)
-    );
-    new cdk.CfnOutput(this, "UserEndpointUrl", {
-      value: api.urlForPath(userResource.path),
-    }).overrideLogicalId("UserEndpointUrl");
 
     const gameResource = api.root.addResource("game");
     gameResource.addMethod(
