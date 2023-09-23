@@ -102,6 +102,49 @@ This component utilizes [EventBridge Pipes](https://docs.aws.amazon.com/eventbri
 
 ![notifier diagram](./docs/notifier.png)
 
+### The API
+
+This component exposes a REST interface to the frontend application.
+
+The `GET /game` returns the information about the game, as well as the connected players and the predictions they have made regarding the next BTC price.
+Here is how the response shape looks like:
+
+```ts
+{
+    game: {
+        id: string;
+        value: number;
+        room: string;
+        createdAtMs: number;
+    },
+    users: {
+        id: string;
+        status: "CONNECTED" | "DISCONNECTED";
+        name: string;
+        score: number;
+        prediction: "UP" | "DOWN" | null;
+    }[]
+}
+```
+
+The `POST /{gameId}/predict` is responsible for saving the users predictions regarding the next BTC price.
+Here is how the payload looks like:
+
+```ts
+{
+    prediction: "UP" | "DOWN",
+    userId: string
+}
+```
+
+And here is how the response looks like:
+
+```ts
+{}
+```
+
+![API diagram](./docs/api.png)
+
 ## Possible improvements
 
 1. Surface the concept of "game rooms" to the client. The concept of a "game room" is only used on the backend for the purpose of making the testing easier. It enables the creation of isolated data entities which do not influence the running application.

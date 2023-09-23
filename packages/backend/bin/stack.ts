@@ -429,18 +429,18 @@ class Api extends Construct {
     );
     props.dataTable.grantReadWriteData(predictFunction);
 
-    const stateFunction = new cdk.aws_lambda_nodejs.NodejsFunction(
+    const gameFunction = new cdk.aws_lambda_nodejs.NodejsFunction(
       this,
       "StateFunction",
       {
         handler: "handler",
-        entry: join(__dirname, "../functions/api/state.handler.ts"),
+        entry: join(__dirname, "../functions/api/game.handler.ts"),
         environment: {
           DATA_TABLE_NAME: props.dataTable.tableName,
         },
       }
     );
-    props.dataTable.grantReadData(stateFunction);
+    props.dataTable.grantReadData(gameFunction);
 
     const api = new cdk.aws_apigateway.RestApi(this, "Api", {
       defaultCorsPreflightOptions: {
@@ -453,7 +453,7 @@ class Api extends Construct {
     const gameResource = api.root.addResource("game");
     gameResource.addMethod(
       "GET",
-      new cdk.aws_apigateway.LambdaIntegration(stateFunction)
+      new cdk.aws_apigateway.LambdaIntegration(gameFunction)
     );
     new cdk.CfnOutput(this, "GameEndpointUrl", {
       value: api.urlForPath(gameResource.path),
