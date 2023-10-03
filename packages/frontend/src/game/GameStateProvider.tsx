@@ -18,7 +18,7 @@ import {
   useEffect,
   useReducer,
 } from "react";
-import { PubSub } from "../lib/amplify";
+import { getPubSubClient } from "../lib/amplify";
 
 export interface GameState {
   game: Game;
@@ -43,23 +43,25 @@ export const GameStateProvider = ({
   const [gameState, dispatch] = useReducer(gameStateReducer, null);
 
   useEffect(() => {
-    const subscription = PubSub.subscribe("game").subscribe((event) => {
-      if (isPresenceEvent(event.value)) {
-        if (event.value.payload.id === currentUserId) {
-          return;
+    const subscription = getPubSubClient()
+      .subscribe("game")
+      .subscribe((event) => {
+        if (isPresenceEvent(event.value)) {
+          if (event.value.payload.id === currentUserId) {
+            return;
+          }
+
+          dispatch(event.value);
         }
 
-        dispatch(event.value);
-      }
+        if (isGameEvent(event.value)) {
+          dispatch(event.value);
+        }
 
-      if (isGameEvent(event.value)) {
-        dispatch(event.value);
-      }
-
-      if (isPredictionEvent(event.value)) {
-        dispatch(event.value);
-      }
-    });
+        if (isPredictionEvent(event.value)) {
+          dispatch(event.value);
+        }
+      });
 
     return () => {
       subscription.unsubscribe();

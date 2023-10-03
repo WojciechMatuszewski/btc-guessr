@@ -9,7 +9,6 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -21,6 +20,15 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "test/setup.ts"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  /*
+   * Vite forces us to have a "tsconfig.json" file that is used for bundling.
+   * Usually I would have a "tsconfig.json" file with only references inside and the "tsconfig.app.json" with the settings from this tsconfig.
+   * Sadly, that is not possible.
+   */
+  "include": ["src", "test/setup.ts", "types"],
+  "exclude": ["cypress"],
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.cypress.e2e.json" }
+  ]
 }

@@ -43,4 +43,16 @@ const getUserId = () => {
   return userId;
 };
 
-export { PubSub, getUserId };
+const getPubSubClient = () => {
+  /**
+   * Due to how difficult intercepting MQTT WebSocket is,
+   * I've decided to implement a "fake PubSub" in Cypress to be able to publish fake data to the UI.
+   */
+  if (window.Cypress && window.PubSub) {
+    return window.PubSub;
+  }
+
+  return PubSub;
+};
+
+export { getPubSubClient, getUserId };

@@ -45,11 +45,10 @@ describe("current user", () => {
       { wrapper: Wrapper }
     );
 
-    expect(screen.getByRole("button", { name: "Vote up" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Vote down" })).toHaveAttribute(
-      "aria-disabled",
-      "true"
-    );
+    expect(screen.getByRole("button", { name: "Predict up" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Predict down" })
+    ).toHaveAttribute("aria-disabled", "true");
   });
 
   test("The 'down' button is disables when the user predicted that the price will go up", () => {
@@ -71,8 +70,8 @@ describe("current user", () => {
       { wrapper: Wrapper }
     );
 
-    expect(screen.getByRole("button", { name: "Vote down" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Vote up" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Predict down" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Predict up" })).toHaveAttribute(
       "aria-disabled",
       "true"
     );
@@ -97,8 +96,8 @@ describe("current user", () => {
       { wrapper: Wrapper }
     );
 
-    expect(screen.getByRole("button", { name: "Vote up" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Vote down" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Predict up" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Predict down" })).toBeEnabled();
   });
 
   test("Add the `you` indicator to the player name", () => {
@@ -151,14 +150,13 @@ describe("other player", () => {
       { wrapper: Wrapper }
     );
 
-    expect(screen.getByRole("button", { name: "Vote up" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Predict up" })).toHaveAttribute(
       "aria-disabled",
       "true"
     );
 
-    expect(screen.getByRole("button", { name: "Vote down" })).toHaveAttribute(
-      "aria-disabled",
-      "true"
-    );
+    expect(
+      screen.getByRole("button", { name: "Predict down" })
+    ).toHaveAttribute("aria-disabled", "true");
   });
 });

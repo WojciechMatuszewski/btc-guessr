@@ -1,14 +1,13 @@
-/// <reference types="vitest" />
-
 import { defineConfig } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import react from "@vitejs/plugin-react-swc";
 import { outputsToEnv } from "./scripts/outputsToEnv";
+import environmentPlugin from "vite-plugin-environment";
 
 outputsToEnv();
 
 export default defineConfig({
-  plugins: [react(), nodePolyfills()],
+  plugins: [react(), nodePolyfills(), environmentPlugin("all")],
   resolve: {
     alias: [
       /**

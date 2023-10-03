@@ -48,7 +48,7 @@ export const UserRow = ({ user, gameId, isCurrentUser }: UserRowProps) => {
   });
 
   return (
-    <Table.Row align={"center"}>
+    <Table.Row align={"center"} data-testid={`user-${user.id}-row`}>
       <Table.RowHeaderCell>
         {isCurrentUser ? (
           <Text data-testid="username" weight={"bold"}>
@@ -122,7 +122,7 @@ const PredictionButtons = ({
           color="green"
           onClick={() => handleOnClick("UP")}
         >
-          <VisuallyHidden>Vote up</VisuallyHidden>
+          <VisuallyHidden>Predict up</VisuallyHidden>
           <ThickArrowUpIcon />
         </IconButton>
         <IconButton
@@ -132,7 +132,7 @@ const PredictionButtons = ({
           color="red"
           onClick={() => handleOnClick("DOWN")}
         >
-          <VisuallyHidden>Vote down</VisuallyHidden>
+          <VisuallyHidden>Predict down</VisuallyHidden>
           <ThickArrowDownIcon />
         </IconButton>
       </fieldset>

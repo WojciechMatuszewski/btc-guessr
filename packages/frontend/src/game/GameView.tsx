@@ -1,4 +1,4 @@
-import { Container, Flex, Text } from "@radix-ui/themes";
+import { Container, Flex, Heading, Text } from "@radix-ui/themes";
 import { useCallback, useLayoutEffect, useState } from "react";
 import { UserRow, UsersTable } from "./Users";
 import { useGameState } from "./hooks";
@@ -64,10 +64,16 @@ interface TickerCardProps {
 const TickerCard = ({ value }: TickerCardProps) => {
   return (
     <Flex gap="2" align={"center"} width={"max-content"}>
-      <Text size="9" color="yellow">
-        $BTC
-      </Text>
-      <Text size="9">{value}</Text>
+      <Heading size="9" color="yellow">
+        $BTC{" "}
+        <Text
+          size="9"
+          color="green"
+          style={{ fontVariantNumeric: "tabular-nums" }}
+        >
+          {value}
+        </Text>
+      </Heading>
     </Flex>
   );
 };

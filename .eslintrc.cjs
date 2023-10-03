@@ -12,6 +12,8 @@ module.exports = {
       "./tsconfig.eslint.json",
       "./packages/*/tsconfig.json",
       "./packages/*/tsconfig.node.json",
+      "./packages/*/tsconfig.app.json",
+      "./packages/*/tsconfig.cypress.e2e.json",
       "./libs/*/tsconfig.json",
     ],
   },

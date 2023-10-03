@@ -28,5 +28,6 @@ export function outputsToEnv() {
   for (const [key, value] of Object.entries(outputs)) {
     process.env[`VITE_${constantCase(key)}`] = value;
     process.env[`${constantCase(key)}`] = value;
+    process.env[`CYPRESS_${constantCase(key)}`] = value;
   }
 }

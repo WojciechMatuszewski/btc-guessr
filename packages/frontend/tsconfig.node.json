@@ -4,11 +4,14 @@
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "types": ["node", "vitest"]
   },
   "include": [
     "vite.config.ts",
+    "cypress.config.ts",
     "./scripts/outputsToEnv.ts",
     "./scripts/uploadArtifactsToBucket.ts"
-  ]
+  ],
+  "exclude": ["cypress", "src"]
 }

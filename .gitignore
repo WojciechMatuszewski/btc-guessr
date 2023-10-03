@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 .env
+downloads
 
 cdk.out
 .cdk.staging
@@ -28,4 +29,4 @@ cdk.out
 *.sln
 *.sw?
 .turbo
-tsconfig.tsbuildinfo
+*.tsbuildinfo
