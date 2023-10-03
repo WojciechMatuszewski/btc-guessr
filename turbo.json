@@ -21,6 +21,7 @@
     "format": {},
     "dev": {},
     "test": {},
+    "test:e2e": {},
     "bootstrap": {},
     "destroy": {}
   }

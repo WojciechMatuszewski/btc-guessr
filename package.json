@@ -5,6 +5,7 @@
     "format": "turbo format",
     "lint": "turbo lint",
     "test": "turbo test",
+    "test:e2e": "turbo test:e2e",
     "typecheck": "turbo typecheck",
     "dev": "turbo dev --filter=@btc-guessr/transport --filter=frontend",
     "build": "turbo build",

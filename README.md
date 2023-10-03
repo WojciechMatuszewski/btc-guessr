@@ -88,6 +88,12 @@ pnpm run dev
 pnpm run test
 ```
 
+3. Run the e2e tests
+
+```shell
+pnpm run test:e2e
+```
+
 ## Architecture
 
 ![full architecture](./docs/architecture.png)

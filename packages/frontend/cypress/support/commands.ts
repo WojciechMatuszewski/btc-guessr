@@ -35,5 +35,4 @@
 //   }
 // }
 
-import "cypress-mock-websocket-plugin";
 import "@testing-library/cypress/add-commands";
